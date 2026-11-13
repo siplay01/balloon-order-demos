@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Send a Photo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&family=Bungee&family=Yellowtail&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/world.css">
+</head>
+<body>
+<div class="demo-strip">Demo 4 of 5: send a photo, get a fixed quote. Name, prices and times are placeholders. <a href="../">All demos</a></div>
+<header class="sign wrap">
+  <p class="name">Balloon Atelier</p>
+  <p class="tag">show us the dream</p>
+  <div class="pin"></div>
+</header>
+<main class="wrap split">
+  <form class="board" id="f" novalidate aria-labelledby="h">
+    <h2 id="h">Send us a photo</h2>
+    <p>A screenshot from Pinterest or Instagram is enough. We reply with a fixed price within 2 business hours (demo promise).</p>
+    <div class="field"><label for="photo">Inspiration photos (up to 3)</label><input id="photo" type="file" accept="image/*" multiple><div class="readout small muted">Photos stay on your phone in this demo.</div><div class="chips" id="thumbs" style="margin-top:8px"></div></div>
+    <div class="field"><span style="font-weight:700;font-size:14px" id="sl">Rough size</span><div class="chips" role="group" aria-labelledby="sl" id="sizes"></div></div>
+    <div class="field"><label for="budget">Budget range</label><select id="budget"><option>Not sure yet</option><option>Up to $500</option><option>$500 to $1,000</option><option>$1,000 to $2,500</option><option>$2,500+</option></select></div>
+    <div class="row">
+      <div class="field"><label for="zip">Venue ZIP</label><input id="zip" inputmode="numeric" maxlength="5" placeholder="90064"><div class="readout" id="zo"></div></div>
+      <div class="field"><label for="date">Event date</label><input id="date" type="date"><div class="readout" id="do"></div></div>
+    </div>
+    <div class="field"><label for="notes">Anything we should know</label><textarea id="notes" placeholder="Venue, colors, setup time, stairs or parking"></textarea></div>
+    <div class="row">
+      <div class="field"><label for="nm">Name</label><input id="nm" autocomplete="name"></div>
+      <div class="field"><label for="ph">Mobile</label><input id="ph" type="tel" autocomplete="tel"></div>
+    </div>
+    <p class="readout bad" id="err" aria-live="assertive"></p>
+    <button class="btn" type="submit">Get my quote (demo)</button>
+  </form>
+  <aside class="board sticky" aria-labelledby="hw">
+    <h2 id="hw">How the quote works</h2>
+    <ul class="menu">
+      <li style="grid-template-columns:1fr"><div class="what"><b>You send photos and a date</b><span>We check the date and the venue ZIP right away.</span></div></li>
+      <li style="grid-template-columns:1fr"><div class="what"><b>A designer prices it</b><span>One fixed number with delivery, setup and pickup.</span></div></li>
+      <li style="grid-template-columns:1fr"><div class="what"><b>You approve by text</b><span>A 30% deposit holds the date. Free changes up to 72 hours before.</span></div></li>
+    </ul>
+    <h3 style="margin-top:16px">Or talk it through</h3>
+    <p class="small">Pick a 15-minute video call slot.</p>
+    <div class="chips" id="slots" role="group" aria-label="Call slots"></div>
+  </aside>
+  <section class="board done" id="done"></section>
+</main>
+<footer class="wrap">Concept demo. No photo, quote request or call booking is sent.</footer>
+<script src="../assets/shop.js"></script>
+<script>
+var sizeSel = null, slot = null, z = null, ds = null;
+["Table", "Wall up to 8 ft", "Wall 8 to 16 ft", "Whole venue"].forEach(function (s) {
+  var b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = s; b.setAttribute("aria-pressed", "false");
+  b.onclick = function () { sizeSel = s; [].forEach.call(b.parentNode.children, function (x) { x.setAttribute("aria-pressed", x === b); }); };
+  document.getElementById("sizes").appendChild(b);
+});
+["Today 4:00 pm", "Today 6:30 pm", "Tomorrow 10:00 am", "Tomorrow 1:30 pm"].forEach(function (s) {
+  var b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = s; b.setAttribute("aria-pressed", "false");
+  b.onclick = function () { slot = s; [].forEach.call(b.parentNode.children, function (x) { x.setAttribute("aria-pressed", x === b); }); };
+  document.getElementById("slots").appendChild(b);
+});
+document.getElementById("photo").onchange = function () {
+  var t = document.getElementById("thumbs"); t.innerHTML = "";
+  [].slice.call(this.files, 0, 3).forEach(function (f) {
+    var img = document.createElement("img"); img.alt = "Your inspiration photo " + f.name; img.src = URL.createObjectURL(f);
+    img.style.cssText = "width:88px;height:88px;object-fit:cover;border:2px solid var(--ink);border-radius:10px"; t.appendChild(img);
+  });
+};
+Shop.wireZip(document.getElementById("zip"), document.getElementById("zo"), function (v) { z = v; });
+Shop.wireDate(document.getElementById("date"), document.getElementById("do"), function (v) { ds = v; });
+document.getElementById("f").onsubmit = function (e) {
+  e.preventDefault(); var err = document.getElementById("err");
+  if (!document.getElementById("photo").files.length && !document.getElementById("notes").value.trim()) return err.textContent = "Add a photo or describe the idea.";
+  if (!z) return err.textContent = "Add the venue ZIP.";
+  if (!ds || ds.s === "bad") return err.textContent = "Pick an open date.";
+  if (!document.getElementById("nm").value.trim() || document.getElementById("ph").value.replace(/\D/g, "").length < 10) return err.textContent = "Add your name and a 10-digit mobile number.";
+  err.textContent = "";
+  Shop.done(document.getElementById("done"), [document.getElementById("photo").files.length + " photo(s), size: " + (sizeSel || "not set"), "Budget: " + document.getElementById("budget").value, "Date: " + document.getElementById("date").value + ", venue " + document.getElementById("zip").value, slot ? "Call booked: " + slot : "No call booked", "Quote promised within 2 business hours"]);
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Wall Menu Shop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&family=Bungee&family=Yellowtail&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/world.css">
+</head>
+<body>
+<div class="demo-strip">Demo 1 of 5: fixed price menu and cart. Name, prices and dates are placeholders. <a href="../">All demos</a></div>
+<header class="sign wrap">
+  <p class="name">Balloon Atelier</p>
+  <p class="tag">same day in LA</p>
+  <div class="pin"></div>
+</header>
+<main class="wrap split">
+  <section class="board" aria-labelledby="m">
+    <h2 id="m">The menu</h2>
+    <p class="muted small">Prices include setup. Delivery is priced by ZIP at checkout.</p>
+    <div id="menu"></div>
+  </section>
+  <aside class="board sticky" aria-labelledby="c">
+    <h2 id="c">Your order</h2>
+    <p id="empty" class="muted">Tap Add on any line of the menu.</p>
+    <ul class="menu" id="cart"></ul>
+    <form id="checkout" class="hide" novalidate>
+      <div class="row">
+        <div class="field"><label for="zip">Delivery ZIP</label><input id="zip" inputmode="numeric" maxlength="5" autocomplete="postal-code" placeholder="90064" required><div class="readout" id="zipOut" aria-live="polite"></div></div>
+        <div class="field"><label for="date">Event date</label><input id="date" type="date" required><div class="readout" id="dateOut" aria-live="polite"></div></div>
+      </div>
+      <div class="field"><label><input type="checkbox" id="pickup" style="width:auto;min-height:0"> I will pick up at the studio</label></div>
+      <div class="row">
+        <div class="field"><label for="name">Name</label><input id="name" autocomplete="name" required></div>
+        <div class="field"><label for="phone">Mobile</label><input id="phone" type="tel" autocomplete="tel" required></div>
+      </div>
+      <div class="total" id="total"></div>
+      <p class="readout bad" id="err" aria-live="assertive"></p>
+      <button class="btn" type="submit">Pay 30% deposit (demo)</button>
+    </form>
+  </aside>
+  <section class="board done" id="done" aria-live="polite"></section>
+</main>
+<footer class="wrap">Concept demo. No order is sent and no card is charged.</footer>
+<script src="../assets/shop.js"></script>
+<script>
+var MENU = [
+  ["Bouquets", [["b5","Mini bouquet","5 latex balloons, ribbon, weight",95],["b9","Classic bouquet","9 balloons with one foil",145],["bn","Number bouquet","Foil number plus 7 balloons",180]]],
+  ["Garlands", [["g6","Garland 6 ft","Organic mix, 3 colors",260],["g10","Garland 10 ft","Organic mix, up to 4 colors",390],["g16","Garland 16 ft","Doorway or long table",560]]],
+  ["Installs", [["ar","Arch 8 ft","Freestanding frame, up to 4 colors",650],["co","Column pair","Two 6 ft columns for an entrance",320],["rf","Room fill","40 helium ceiling balloons",240]]]
+];
+var cart = {}, items = {}, z = null, ds = null;
+var menu = document.getElementById("menu");
+MENU.forEach(function (g) {
+  var h = document.createElement("h3"); h.textContent = g[0]; h.style.marginTop = "14px"; menu.appendChild(h);
+  var ul = document.createElement("ul"); ul.className = "menu";
+  g[1].forEach(function (it) {
+    items[it[0]] = it;
+    var li = document.createElement("li");
+    li.innerHTML = '<div class="what"><b>' + it[1] + "</b><span>" + it[2] + '</span></div><span class="price">' + Shop.money(it[3]) + '</span><button class="btn small" type="button" aria-label="Add ' + it[1] + '">Add</button>';
+    li.querySelector("button").onclick = function () { cart[it[0]] = (cart[it[0]] || 0) + 1; render(); };
+    ul.appendChild(li);
+  });
+  menu.appendChild(ul);
+});
+function sub() { var s = 0; for (var k in cart) s += items[k][3] * cart[k]; return s; }
+function render() {
+  var ul = document.getElementById("cart"), keys = Object.keys(cart).filter(function (k) { return cart[k] > 0; });
+  ul.innerHTML = "";
+  keys.forEach(function (k) {
+    var li = document.createElement("li");
+    li.innerHTML = '<div class="what"><b>' + items[k][1] + "</b><span>" + cart[k] + " x " + Shop.money(items[k][3]) + '</span></div><span class="price">' + Shop.money(items[k][3] * cart[k]) + '</span><span><button class="btn small ghost" type="button" aria-label="Remove one">-</button></span>';
+    li.querySelector("button").onclick = function () { cart[k]--; render(); };
+    ul.appendChild(li);
+  });
+  document.getElementById("empty").classList.toggle("hide", keys.length > 0);
+  document.getElementById("checkout").classList.toggle("hide", !keys.length);
+  totals();
+}
+function totals() {
+  var pick = document.getElementById("pickup").checked, s = sub();
+  var fee = pick ? 0 : (z && z.fee) || 0, rush = ds && ds.rush || 0, t = s + fee + rush;
+  document.getElementById("total").innerHTML =
+    "<div><span>Items</span><span>" + Shop.money(s) + "</span></div>" +
+    "<div><span>Delivery</span><span>" + (pick ? "Pickup, free" : z ? (z.fee === null ? "Quoted by text" : Shop.money(fee)) : "Enter ZIP") + "</span></div>" +
+    (rush ? "<div><span>Rush</span><span>" + Shop.money(rush) + "</span></div>" : "") +
+    '<div class="sum"><span>Total</span><span>' + Shop.money(t) + "</span></div>" +
+    '<div class="muted small"><span>Deposit today (30%)</span><span>' + Shop.money(t * .3) + "</span></div>";
+}
+Shop.wireZip(document.getElementById("zip"), document.getElementById("zipOut"), function (v) { z = v; totals(); });
+Shop.wireDate(document.getElementById("date"), document.getElementById("dateOut"), function (v) { ds = v; totals(); });
+document.getElementById("pickup").onchange = totals;
+document.getElementById("checkout").onsubmit = function (e) {
+  e.preventDefault();
+  var f = this, err = document.getElementById("err"), pick = document.getElementById("pickup").checked;
+  if (!pick && !z) return err.textContent = "Add a delivery ZIP or choose pickup.";
+  if (!ds || ds.s === "bad") return err.textContent = "Pick an open date.";
+  if (!f.elements["name"].value.trim() || f.phone.value.replace(/\D/g, "").length < 10) return err.textContent = "Add your name and a 10-digit mobile number.";
+  err.textContent = "";
+  var lines = Object.keys(cart).filter(function (k) { return cart[k] > 0; }).map(function (k) { return cart[k] + " x " + items[k][1]; });
+  lines.push("Date: " + f.date.value, pick ? "Pickup at studio" : "Delivery to " + f.zip.value);
+  Shop.done(document.getElementById("done"), lines);
+};
+</script>
+</body>
+</html>

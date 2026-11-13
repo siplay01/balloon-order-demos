@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Build Your Garland</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&family=Bungee&family=Yellowtail&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/world.css">
+</head>
+<body>
+<div class="demo-strip">Demo 2 of 5: build it yourself, price updates live. Name, prices and dates are placeholders. <a href="../">All demos</a></div>
+<header class="sign wrap">
+  <p class="name">Balloon Atelier</p>
+  <p class="tag">build it your way</p>
+  <div class="pin"></div>
+</header>
+<main class="wrap split">
+  <section class="board sticky" aria-labelledby="pv">
+    <h2 id="pv">Your design</h2>
+    <div class="preview" id="art"></div>
+    <p class="muted small">Illustration only. Real balloons sit in an organic mix of sizes.</p>
+    <div class="total" id="total" aria-live="polite"></div>
+  </section>
+  <form class="board" id="f" novalidate aria-labelledby="bt">
+    <h2 id="bt">Build it</h2>
+    <div class="field"><span id="tl" style="font-weight:700;font-size:14px">What are we making?</span>
+      <div class="chips" role="group" aria-labelledby="tl" id="types"></div></div>
+    <div class="field"><label for="size" id="sizeL">Length</label><input id="size" type="range" style="padding:0;border:0;background:none"><div class="readout" id="sizeOut"></div></div>
+    <div class="field"><span style="font-weight:700;font-size:14px" id="cl">Colors, up to 4</span>
+      <div class="swatches" role="group" aria-labelledby="cl" id="sw"></div>
+      <div class="readout muted small" id="swOut"></div></div>
+    <div class="field"><span style="font-weight:700;font-size:14px">Extras</span>
+      <ul class="menu" id="extras"></ul></div>
+    <h3>When and where</h3>
+    <div class="row">
+      <div class="field"><label for="zip">Delivery ZIP</label><input id="zip" inputmode="numeric" maxlength="5" autocomplete="postal-code" placeholder="90064"><div class="readout" id="zipOut" aria-live="polite"></div></div>
+      <div class="field"><label for="date">Event date</label><input id="date" type="date"><div class="readout" id="dateOut" aria-live="polite"></div></div>
+    </div>
+    <div class="row">
+      <div class="field"><label for="nm">Name</label><input id="nm" autocomplete="name"></div>
+      <div class="field"><label for="ph">Mobile</label><input id="ph" type="tel" autocomplete="tel"></div>
+    </div>
+    <p class="readout bad" id="err" aria-live="assertive"></p>
+    <button class="btn" type="submit">Book with 30% deposit (demo)</button>
+  </form>
+  <section class="board done" id="done"></section>
+</main>
+<footer class="wrap">Concept demo. No order is sent and no card is charged.</footer>
+<script src="../assets/shop.js"></script>
+<script>
+var TYPES = {
+  garland: { label: "Garland", unit: "ft", min: 6, max: 30, def: 10, price: function (n) { return n * 38; } },
+  arch:    { label: "Arch", unit: "ft", min: 6, max: 14, def: 8, price: function (n) { return 650 + Math.max(0, n - 8) * 70; } },
+  columns: { label: "Columns", unit: "columns", min: 2, max: 4, def: 2, price: function (n) { return n * 160; } },
+  bouquet: { label: "Bouquet", unit: "balloons", min: 5, max: 15, def: 9, price: function (n) { return 25 + n * 14; } }
+};
+var EXTRAS = [["num","Foil number or letter, each",25,true],["sign","Custom vinyl name sign",65],["fill","20 helium ceiling balloons",120],["chrome","Chrome finish on all balloons","+15%"]];
+var st = { type: "garland", size: 10, colors: ["Blush", "White", "Gold"], extras: {}, z: null, ds: null };
+var typesEl = document.getElementById("types"), size = document.getElementById("size");
+Object.keys(TYPES).forEach(function (k) {
+  var b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = TYPES[k].label; b.dataset.k = k;
+  b.onclick = function () { st.type = k; st.size = TYPES[k].def; sync(); }; typesEl.appendChild(b);
+});
+var sw = document.getElementById("sw");
+Shop.COLORS.forEach(function (c) {
+  var b = document.createElement("button"); b.type = "button"; b.className = "swatch"; b.innerHTML = '<i style="background:' + c[1] + '"></i>' + c[0]; b.dataset.c = c[0];
+  b.onclick = function () {
+    var i = st.colors.indexOf(c[0]);
+    if (i > -1) { if (st.colors.length > 1) st.colors.splice(i, 1); } else if (st.colors.length < 4) st.colors.push(c[0]);
+    else { document.getElementById("swOut").textContent = "Four colors max. Tap one to remove it first."; return; }
+    sync();
+  }; sw.appendChild(b);
+});
+var ex = document.getElementById("extras");
+EXTRAS.forEach(function (e) {
+  var li = document.createElement("li");
+  li.innerHTML = '<label class="what" style="font-weight:400;margin:0"><b>' + e[1] + '</b></label><span class="price">' + (typeof e[2] === "number" ? Shop.money(e[2]) : e[2]) + "</span>" +
+    (e[3] ? '<input type="number" min="0" max="9" value="0" style="width:72px" aria-label="How many: ' + e[1] + '">' : '<input type="checkbox" style="width:24px;min-height:24px" aria-label="' + e[1] + '">');
+  var inp = li.querySelector("input");
+  inp.oninput = inp.onchange = function () { st.extras[e[0]] = e[3] ? Math.max(0, Math.min(9, +inp.value || 0)) : inp.checked; sync(); };
+  ex.appendChild(li);
+});
+size.oninput = function () { st.size = +size.value; sync(); };
+function price() {
+  var t = TYPES[st.type], base = t.price(st.size);
+  if (st.extras.chrome) base *= 1.15;
+  base += (st.extras.num || 0) * 25 + (st.extras.sign ? 65 : 0) + (st.extras.fill ? 120 : 0);
+  return base;
+}
+function sync() {
+  var t = TYPES[st.type];
+  [].forEach.call(typesEl.children, function (b) { b.setAttribute("aria-pressed", b.dataset.k === st.type); });
+  [].forEach.call(sw.children, function (b) { b.setAttribute("aria-pressed", st.colors.indexOf(b.dataset.c) > -1); });
+  document.getElementById("swOut").textContent = st.colors.join(", ");
+  size.min = t.min; size.max = t.max; size.value = st.size;
+  document.getElementById("sizeL").textContent = t.unit === "ft" ? "Length" : "How many";
+  document.getElementById("sizeOut").textContent = st.size + " " + t.unit;
+  document.getElementById("art").innerHTML = Shop.draw(st.type, st.colors, st.size);
+  var p = price(), fee = st.z && st.z.fee || 0, rush = st.ds && st.ds.rush || 0, tot = p + fee + rush;
+  document.getElementById("total").innerHTML =
+    "<div><span>" + t.label + ", " + st.size + " " + t.unit + "</span><span>" + Shop.money(p) + "</span></div>" +
+    "<div><span>Delivery</span><span>" + (st.z ? (st.z.fee === null ? "Quoted by text" : Shop.money(fee)) : "Enter ZIP") + "</span></div>" +
+    (rush ? "<div><span>Rush</span><span>" + Shop.money(rush) + "</span></div>" : "") +
+    '<div class="sum"><span>Total</span><span>' + Shop.money(tot) + '</span></div><div class="muted small"><span>Deposit today (30%)</span><span>' + Shop.money(tot * .3) + "</span></div>";
+}
+Shop.wireZip(document.getElementById("zip"), document.getElementById("zipOut"), function (v) { st.z = v; sync(); });
+Shop.wireDate(document.getElementById("date"), document.getElementById("dateOut"), function (v) { st.ds = v; sync(); });
+document.getElementById("f").onsubmit = function (e) {
+  e.preventDefault(); var err = document.getElementById("err");
+  if (!st.z) return err.textContent = "Add a delivery ZIP.";
+  if (!st.ds || st.ds.s === "bad") return err.textContent = "Pick an open date.";
+  if (!document.getElementById("nm").value.trim() || document.getElementById("ph").value.replace(/\D/g, "").length < 10) return err.textContent = "Add your name and a 10-digit mobile number.";
+  err.textContent = "";
+  Shop.done(document.getElementById("done"), [TYPES[st.type].label + ", " + st.size + " " + TYPES[st.type].unit, "Colors: " + st.colors.join(", "), "Date: " + document.getElementById("date").value, "Total " + Shop.money(price() + (st.z.fee || 0) + (st.ds.rush || 0))]);
+};
+sync();
+</script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Balloon Order Demos</title>
+<meta name="description" content="Five concept demos of how a Los Angeles balloon studio can take orders online.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&family=Bungee&family=Yellowtail&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/world.css">
+<style>
+.demos li{grid-template-columns:110px 1fr auto}
+.demos .tagline{display:block;font-size:14px;color:var(--mute)}
+@media (max-width:560px){.demos li{grid-template-columns:72px 1fr}.demos li .btn{grid-column:2;justify-self:start}}
+.same li{grid-template-columns:1fr}
+</style>
+</head>
+<body>
+<div class="demo-strip">Concept demos for a new LA balloon studio. Studio name, prices and dates are placeholders.</div>
+<header class="sign wrap">
+  <h1 class="name">Balloon Atelier</h1>
+  <p class="tag">five ways to take an order</p>
+  <div class="pin"></div>
+</header>
+<main class="wrap">
+  <section class="board" aria-labelledby="d">
+    <h2 id="d">Pick a demo</h2>
+    <p>Each demo is a small working shop. They share one look and differ in how the customer builds and sends the order. Try each on your phone.</p>
+    <ul class="menu demos">
+      <li><div id="a1" aria-hidden="true"></div><div class="what"><b>1. Wall menu</b><span class="tagline">Fixed prices, cart, ZIP delivery fee, date check, 30% deposit.</span></div><a class="btn small" href="demo1/">Open</a></li>
+      <li><div id="a2" aria-hidden="true"></div><div class="what"><b>2. Build it</b><span class="tagline">Pick type, size and colors, watch the picture and the price change.</span></div><a class="btn small" href="demo2/">Open</a></li>
+      <li><div id="a3" aria-hidden="true"></div><div class="what"><b>3. Party finder</b><span class="tagline">Four questions, then three priced packages to choose from.</span></div><a class="btn small" href="demo3/">Open</a></li>
+      <li><div id="a4" aria-hidden="true"></div><div class="what"><b>4. Send a photo</b><span class="tagline">Upload inspiration, get a fixed quote, or book a 15-minute call.</span></div><a class="btn small" href="demo4/">Open</a></li>
+      <li><div id="a5" aria-hidden="true"></div><div class="what"><b>5. Today</b><span class="tagline">Same-day items, order cutoff clock, delivery windows, order by text.</span></div><a class="btn small" href="demo5/">Open</a></li>
+    </ul>
+  </section>
+  <section class="board" aria-labelledby="s">
+    <h2 id="s">In every demo</h2>
+    <ul class="menu same">
+      <li><div class="what"><b>Delivery fee by ZIP</b><span>Three demo zones: Westside <span class="zone z-A">$25</span>, Central LA <span class="zone z-B">$45</span>, Greater LA <span class="zone z-C">$65</span>. Try 90064, 90036 or 91403.</span></div></li>
+      <li><div class="what"><b>Date check before submit</b><span>The demo calendar shows open, rush (+$30) and fully booked days.</span></div></li>
+      <li><div class="what"><b>Total before the customer commits</b><span>Items, delivery and rush in one number. Nothing is sent or charged.</span></div></li>
+    </ul>
+  </section>
+</main>
+<footer class="wrap">Concept demo. No real studio, reviews or prices.</footer>
+<script src="assets/shop.js"></script>
+<script>
+[["a1","bouquet",["Coral","Lemon","Sky"],7],["a2","garland",["Blush","White","Gold"],8],["a3","arch",["Sage","White","Blush"],8],["a4","columns",["Black","Gold","White"],2],["a5","bouquet",["Ruby","Blush","White"],5]].forEach(function (a) { document.getElementById(a[0]).innerHTML = Shop.draw(a[1], a[2], a[3]); });
+</script>
+</body>
+</html>
