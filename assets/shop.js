@@ -108,7 +108,7 @@ var Shop = (function () {
   }
 
   // ---------- page chrome ----------
-  var DEMOS = [["", "All demos"], ["demo1/", "1 Shop"], ["demo2/", "2 Personalize"], ["demo3/", "3 Gender reveal"], ["demo4/", "4 Gift finder"], ["demo5/", "5 Order by DM"]];
+  var DEMOS = [["", "All demos"], ["demo1/", "1 Shop"], ["demo2/", "2 Personalize"], ["demo3/", "3 Gender reveal"], ["demo4/", "4 Gift finder"], ["demo5/", "5 Order by DM"], ["demo6/", "6 Build your set"]];
   function chrome(n) {
     var bar = document.createElement("nav"); bar.className = "demo-bar"; bar.setAttribute("aria-label", "Demos");
     bar.innerHTML = '<div class="wrap"><span>Concept demo</span>' + DEMOS.map(function (d, i) { return '<a href="' + ((n ? "../" : "") + d[0] || "./") + '"' + (i === n ? ' aria-current="page"' : "") + ">" + d[1] + "</a>"; }).join("") + "</div>";
@@ -169,5 +169,5 @@ var Shop = (function () {
       lines.map(function (l) { return "<li>" + esc(l) + "</li>"; }).join("") + '</ul><p style="margin-top:16px"><a class="btn line" href="./">Start again</a></p></div>';
     el.classList.add("show", "fade"); el.setAttribute("tabindex", "-1"); el.scrollIntoView({ behavior: "smooth", block: "start" }); el.focus({ preventScroll: true });
   }
-  return { PALETTE: PALETTE, CATALOG: CATALOG, byId: byId, money: money, esc: esc, zoneFor: zoneFor, dayStatus: dayStatus, todayISO: todayISO, art: art, chrome: chrome, checkout: checkout, done: done };
+  return { latex: latex, bubble: bubble, ribbons: ribbons, shade: shade, hex: hex, PALETTE: PALETTE, CATALOG: CATALOG, byId: byId, money: money, esc: esc, zoneFor: zoneFor, dayStatus: dayStatus, todayISO: todayISO, art: art, chrome: chrome, checkout: checkout, done: done };
 })();

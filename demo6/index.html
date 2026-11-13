@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Build Your Set</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500&family=Marcellus&family=Pinyon+Script&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/world.css">
+<style>
+.stage{background:var(--soft);border-radius:4px;aspect-ratio:400/520;overflow:hidden;position:relative}
+.stage svg{width:100%;height:100%;display:block}
+.stage svg g.pc{transition:transform .45s cubic-bezier(.16,1,.3,1)}
+.meter{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.meter div{background:var(--surface);border:1px solid var(--line);border-radius:2px;padding:10px}
+.meter b{display:block;font:400 20px/1.2 var(--serif)}
+.meter span{font-size:13px;color:var(--mute)}
+.pieces{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.piece{display:flex;gap:10px;align-items:center;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:2px;padding:8px 10px;cursor:pointer;font:inherit;text-align:left;min-height:56px}
+.piece:hover{border-color:var(--ink)}
+.piece svg{width:34px;height:34px;flex:none}
+.piece small{display:block;color:var(--mute);font-size:13px}
+.lines li{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center}
+.lines .dot{width:28px;height:28px;border-radius:50%;border:1px solid rgba(0,0,0,.15)}
+.lines select{min-height:40px;padding:6px 8px;font-size:15px}
+.step{display:flex;align-items:center;gap:4px}
+.step button{width:36px;height:36px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:2px;font:400 18px var(--sans);cursor:pointer}
+.step output{min-width:24px;text-align:center;font-variant-numeric:tabular-nums}
+.presets{display:flex;gap:8px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <section class="hero" style="padding-bottom:12px">
+    <div>
+      <h1>Build your own set</h1>
+      <p class="lead">Pick the balloons, choose a color for each, and watch the bouquet come together. We hand-tie it exactly like this.</p>
+    </div>
+  </section>
+  <div class="split">
+    <div class="sticky">
+      <div class="stage" id="stage"></div>
+      <div class="meter" aria-live="polite">
+        <div><b id="mCount">0</b><span>balloons</span></div>
+        <div><b id="mHeight">0 ft</b><span>tall, estimate</span></div>
+        <div><b id="mCar">-</b><span id="mCarL">fits in</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="field"><span class="label">Start from</span><div class="presets" id="presets"></div></div>
+      <div class="field"><span class="label" id="pal">Color for new balloons</span><div class="swatches" role="group" aria-labelledby="pal" id="sw"></div><div class="readout muted" id="swOut"></div></div>
+      <div class="field"><span class="label">Add a balloon</span><div class="pieces" id="pieces"></div></div>
+      <div class="field"><span class="label">In your set</span><ul class="list lines" id="lines"></ul><p class="muted small hide" id="empty">Nothing yet. Tap a balloon above or start from a ready set.</p></div>
+      <div class="row" id="letterRow">
+        <div class="field"><label for="l1">Name on the jumbo</label><input id="l1" maxlength="16" value="Emma"></div>
+        <div class="field"><label for="num">Foil number</label><input id="num" maxlength="2" inputmode="numeric" value="30"></div>
+      </div>
+      <div class="field"><span class="label" id="fl">Finish</span><div class="opts" role="group" aria-labelledby="fl" id="finish"></div></div>
+      <div class="panel" style="margin-top:20px"><h2>Pickup or delivery</h2><div id="co"></div></div>
+    </div>
+  </div>
+  <section class="section done" id="done"></section>
+</main>
+<script src="../assets/shop.js"></script>
+<script>
+Shop.chrome(6);
+// Inch sizes drive both the drawing and the height meter. Prices are placeholders.
+var TYPES = {
+  jumbo:  { name: "Jumbo bubble 24\"", short: "Personalized, clear", inch: 24, price: 45, max: 2 },
+  over:   { name: "Oversized 18\"", short: "Latex, matte", inch: 18, price: 12 },
+  classic:{ name: "Classic 12\"", short: "Latex, matte", inch: 12, price: 5 },
+  chrome: { name: "Chrome 12\"", short: "Mirror shine", inch: 12, price: 7, shine: true },
+  number: { name: "Foil number 34\"", short: "One or two digits", inch: 34, price: 18, max: 1 },
+  star:   { name: "Foil star 18\"", short: "Or a heart", inch: 18, price: 9 }
+};
+var FINISH = [["ribbons", "Gold ribbons", 0], ["tassel", "Tassel tail", 10], ["box", "Gift box base", 25]];
+var PRESETS = {
+  "Signature": [["jumbo", "Pearl White", 1], ["over", "Deep Merlot", 3], ["over", "Dusk Pink", 3]],
+  "Birthday number": [["number", "Chrome Gold", 1], ["classic", "Nude", 5], ["chrome", "Chrome Gold", 3], ["classic", "Cream", 4]],
+  "Soft and simple": [["over", "Nude", 2], ["over", "Cream", 2], ["over", "Blush", 1]],
+  "Empty": []
+};
+var lines = [], cur = "Dusk Pink", finish = "ribbons";
+var $ = function (id) { return document.getElementById(id); };
+
+// ---- controls ----
+Object.keys(Shop.PALETTE).forEach(function (n) {
+  var b = document.createElement("button"); b.type = "button"; b.className = "sw"; b.title = n; b.setAttribute("aria-label", n); b.style.background = Shop.PALETTE[n];
+  b.onclick = function () { cur = n; note("New balloons: " + n); paint(); }; $("sw").appendChild(b);
+});
+Object.keys(TYPES).forEach(function (k) {
+  var t = TYPES[k], b = document.createElement("button"); b.type = "button"; b.className = "piece";
+  b.innerHTML = icon(k) + "<span>" + t.name + "<small>" + t.short + " &middot; " + Shop.money(t.price) + "</small></span>";
+  b.onclick = function () { add(k, cur); }; $("pieces").appendChild(b);
+});
+Object.keys(PRESETS).forEach(function (n) {
+  var b = document.createElement("button"); b.type = "button"; b.className = "opt"; b.textContent = n;
+  b.onclick = function () { lines = PRESETS[n].map(function (l) { return { t: l[0], c: l[1], q: l[2] }; }); paint(); };
+  $("presets").appendChild(b);
+});
+FINISH.forEach(function (f) {
+  var b = document.createElement("button"); b.type = "button"; b.className = "opt"; b.dataset.v = f[0]; b.innerHTML = f[1] + (f[2] ? "<small>+" + Shop.money(f[2]) + "</small>" : "<small>Included</small>");
+  b.onclick = function () { finish = f[0]; paint(); }; $("finish").appendChild(b);
+});
+function icon(k) {
+  if (k === "star") return '<svg viewBox="0 0 34 34"><path d="' + star(17, 17, 15) + '" fill="#d8c08a"/></svg>';
+  if (k === "number") return '<svg viewBox="0 0 34 34"><text x="17" y="28" text-anchor="middle" font-family="Marcellus" font-size="30" fill="#c9a45c">3</text></svg>';
+  var r = { jumbo: 15, over: 13, classic: 10, chrome: 10 }[k];
+  return '<svg viewBox="0 0 34 34"><circle cx="17" cy="17" r="' + r + '" fill="' + (k === "jumbo" ? "#fff" : k === "chrome" ? "#c9a45c" : "#d7a3a6") + '" stroke="rgba(0,0,0,.18)"/></svg>';
+}
+function count() { return lines.reduce(function (s, l) { return s + l.q; }, 0); }
+function add(k, c) {
+  var t = TYPES[k], same = lines.filter(function (l) { return l.t === k; }).reduce(function (s, l) { return s + l.q; }, 0);
+  if (t.max && same >= t.max) return note(t.name + ": up to " + t.max + " per set.");
+  if (count() >= 30) return note("30 balloons is the most we tie into one set.");
+  var l = lines.filter(function (x) { return x.t === k && x.c === c; })[0];
+  if (l) l.q++; else lines.push({ t: k, c: k === "jumbo" ? "Pearl White" : c, q: 1 });
+  paint();
+}
+function note(t) { $("swOut").textContent = t; }
+
+// ---- layout: greedy circle packing around the jumbo, then strings to one hand-tie ----
+function star(cx, cy, r) { var p = "", i; for (i = 0; i < 10; i++) { var a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * .45 : r; p += (i ? "L" : "M") + (cx + Math.cos(a) * rr).toFixed(1) + " " + (cy + Math.sin(a) * rr).toFixed(1); } return p + "Z"; }
+function layout() {
+  var items = [];
+  lines.forEach(function (l) { for (var i = 0; i < l.q; i++) items.push({ t: l.t, c: l.c }); });
+  items.sort(function (a, b) { return order(a.t) - order(b.t); });
+  var px = PX, placed = [], cx = 200, cy = 240, angs = [], a, num = null;
+  for (a = 0; a <= 180; a += 12) { angs.push(-90 - a); if (a && a < 180) angs.push(-90 + a); }
+  items.forEach(function (it) {
+    var r = TYPES[it.t].inch * px / 2 * (it.t === "number" ? .78 : 1);
+    if (it.t === "number") { num = { r: r, it: it }; return; }
+    for (var d = 0; d < 320; d += 3) {
+      for (var k = 0; k < angs.length; k++) {
+        var ang = angs[k] * Math.PI / 180, x = cx + Math.cos(ang) * d, y = cy + Math.sin(ang) * d * .85;
+        if (y + r > 420 || x - r < 4 || x + r > 396 || y - r < 4) continue;
+        if (placed.every(function (p) { return Math.hypot(p.x - x, p.y - y) > (p.r + r) * .8; })) { placed.push({ x: x, y: y, r: r, it: it }); return; }
+        if (!d) break;
+      }
+    }
+  });
+  if (num) { var top = placed.length ? Math.min.apply(null, placed.map(function (p) { return p.y - p.r; })) : 300; placed.push({ x: cx, y: Math.max(num.r + 4, top - num.r * .35), r: num.r, it: num.it }); }
+  // Scale the whole cluster to fill the stage; k is kept so the size meter stays in real inches.
+  var k = 1;
+  if (placed.length) {
+    var x0 = Math.min.apply(null, placed.map(function (p) { return p.x - p.r; })), x1 = Math.max.apply(null, placed.map(function (p) { return p.x + p.r; }));
+    var y0 = Math.min.apply(null, placed.map(function (p) { return p.y - p.r; })), y1 = Math.max.apply(null, placed.map(function (p) { return p.y + p.r; }));
+    k = Math.min(1.7, 370 / (x1 - x0), 390 / (y1 - y0));
+    var mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
+    placed.forEach(function (p) { p.x = 200 + (p.x - mx) * k; p.y = 225 + (p.y - my) * k; p.r *= k; });
+  }
+  placed.k = k;
+  return placed;
+}
+function order(t) { return { number: 9, jumbo: 0, over: 1, star: 3, chrome: 2, classic: 2 }[t]; }
+var PX = 3.3;
+function draw() {
+  var P = layout(), s = "", knot = { x: 200, y: 470 }, l1 = Shop.esc($("l1").value), num = Shop.esc($("num").value.replace(/\D/g, "") || "0");
+  if (!P.length) { $("stage").innerHTML = '<svg viewBox="0 0 400 520" aria-hidden="true"><text x="200" y="250" text-anchor="middle" font-family="Marcellus" font-size="20" fill="#9a8c84">Your set appears here</text></svg>'; return P; }
+  P.forEach(function (p) { s += '<path d="M' + p.x.toFixed(1) + " " + (p.y + p.r).toFixed(1) + " Q" + ((p.x + knot.x) / 2 + (p.x < 200 ? -8 : 8)).toFixed(1) + " " + ((p.y + knot.y) / 2).toFixed(1) + " " + knot.x + " " + knot.y + '" stroke="#bfa36a" stroke-width=".8" fill="none" opacity=".6"/>'; });
+  var draws = P.slice().sort(function (a, b) { return (a.it.t === "jumbo") - (b.it.t === "jumbo") || (a.it.t === "number") - (b.it.t === "number") || a.y - b.y; });
+  draws.forEach(function (p, i) {
+    var t = p.it.t, g = '<g class="pc">';
+    if (t === "jumbo") g += '<circle cx="' + p.x + '" cy="' + p.y + '" r="' + p.r + '" fill="#fbf7f2" opacity=".72"/>' + Shop.bubble(p.x, p.y, p.r, { line1: l1, style: "script", ink: "Gold", fill: "feathers" });
+    else if (t === "star") g += '<path d="' + star(p.x, p.y, p.r) + '" fill="' + Shop.hex(p.it.c) + '" stroke="' + Shop.shade(Shop.hex(p.it.c), .8) + '"/><path d="' + star(p.x - p.r * .1, p.y - p.r * .1, p.r * .4) + '" fill="#fff" opacity=".35"/>';
+    else if (t === "number") g += '<text x="' + p.x + '" y="' + (p.y + p.r * .55) + '" text-anchor="middle" font-family="Marcellus" font-size="' + (p.r * (num.length > 1 ? 1.5 : 1.9)).toFixed(0) + '" fill="' + Shop.hex(p.it.c) + '" stroke="' + Shop.shade(Shop.hex(p.it.c), .75) + '" stroke-width="1.5">' + num + "</text>";
+    else { g += Shop.latex(p.x, p.y, p.r, p.it.c, "l" + i); if (TYPES[t].shine) g += '<ellipse cx="' + (p.x + p.r * .3) + '" cy="' + (p.y + p.r * .35) + '" rx="' + p.r * .2 + '" ry="' + p.r * .12 + '" fill="#fff" opacity=".5"/>'; }
+    s += g + "</g>";
+  });
+  if (finish === "tassel") s += Shop.ribbons(200, 470, 9, "#c9a45c", 46);
+  else if (finish === "box") s += '<rect x="160" y="462" width="80" height="50" fill="#fbf8f4" stroke="rgba(70,50,45,.2)"/><rect x="154" y="456" width="92" height="10" fill="#fff" stroke="rgba(70,50,45,.2)"/>';
+  else s += Shop.ribbons(200, 470, 5, "#c9a45c", 40);
+  s += '<circle cx="200" cy="470" r="4" fill="#c9a45c"/>';
+  $("stage").innerHTML = '<svg viewBox="0 0 400 520" role="img" aria-label="Your balloon set, ' + P.length + ' balloons">' + s + "</svg>";
+  return P;
+}
+function price() { return lines.reduce(function (s, l) { return s + TYPES[l.t].price * l.q; }, 0) + (finish === "tassel" ? 10 : finish === "box" ? 25 : 0); }
+var co;
+function paint() {
+  [].forEach.call($("sw").children, function (b) { b.setAttribute("aria-pressed", b.title === cur); });
+  [].forEach.call($("finish").children, function (b) { b.setAttribute("aria-pressed", b.dataset.v === finish); });
+  var ul = $("lines"); ul.innerHTML = "";
+  lines = lines.filter(function (l) { return l.q > 0; });
+  lines.forEach(function (l) {
+    var li = document.createElement("li"), t = TYPES[l.t];
+    li.innerHTML = '<span class="dot" style="background:' + (l.t === "jumbo" ? "#fff" : Shop.hex(l.c)) + '"></span><div><b style="font-weight:500">' + t.name + "</b><br>" +
+      (l.t === "jumbo" ? '<span class="small muted">Clear, with your lettering</span>' : '<select aria-label="Color for ' + t.name + '">' + Object.keys(Shop.PALETTE).map(function (n) { return "<option" + (n === l.c ? " selected" : "") + ">" + n + "</option>"; }).join("") + "</select>") +
+      '</div><div class="step"><button type="button" aria-label="One less">-</button><output>' + l.q + '</output><button type="button" aria-label="One more">+</button></div>';
+    var bs = li.querySelectorAll(".step button"), sel = li.querySelector("select");
+    bs[0].onclick = function () { l.q--; paint(); };
+    bs[1].onclick = function () { add(l.t, l.c); };
+    if (sel) sel.onchange = function () { l.c = sel.value; paint(); };
+    ul.appendChild(li);
+  });
+  $("empty").classList.toggle("hide", lines.length > 0);
+  var P = draw(), n = count();
+    // Estimate: drawn cluster in inches (PX px per inch), x0.7 because real bouquets overlap front to back, plus a 30-inch ribbon.
+  function ext(f, g) { return P.length ? Math.max.apply(null, P.map(f)) - Math.min.apply(null, P.map(g)) : 0; }
+  var tall = ext(function (p) { return p.y + p.r; }, function (p) { return p.y - p.r; }) / PX / P.k, wide = ext(function (p) { return p.x + p.r; }, function (p) { return p.x - p.r; }) / PX / P.k / 12;
+  var ft = P.length ? (tall * .7 + 30) / 12 : 0;
+  $("mCount").textContent = n; $("mHeight").textContent = ft.toFixed(1) + " ft";
+  $("mCar").textContent = !n ? "-" : n <= 7 && wide < 3 ? "Sedan" : n <= 15 ? "SUV" : "Delivery";
+  $("mCarL").textContent = !n ? "fits in" : n <= 15 ? "fits for pickup" : "too big for a car";
+  if (co) co.refresh();
+}
+$("l1").oninput = draw; $("num").oninput = draw;
+co = Shop.checkout($("co"), {
+  items: function () {
+    var it = lines.map(function (l) { return { name: l.q + " x " + TYPES[l.t].name + (l.t === "jumbo" ? "" : ", " + l.c), price: TYPES[l.t].price * l.q }; });
+    var f = FINISH.filter(function (x) { return x[0] === finish; })[0]; if (f[2]) it.push({ name: f[1], price: f[2] });
+    return it.length ? it : [{ name: "Empty set", price: 0 }];
+  },
+  validate: function () {
+    if (!count()) return "Add at least one balloon.";
+    if (lines.some(function (l) { return l.t === "jumbo"; }) && !$("l1").value.trim()) return "Type the name for the jumbo balloon.";
+    if (lines.some(function (l) { return l.t === "number"; }) && !/\d/.test($("num").value)) return "Type the number for the foil balloon.";
+    return "";
+  },
+  doneEl: $("done")
+});
+lines = PRESETS.Signature.map(function (l) { return { t: l[0], c: l[1], q: l[2] }; });
+paint();
+</script>
+</body>
+</html>
