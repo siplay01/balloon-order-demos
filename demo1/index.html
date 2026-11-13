@@ -4,105 +4,109 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Wall Menu Shop</title>
+<title>Balloon Atelier Shop</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&family=Bungee&family=Yellowtail&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500&family=Marcellus&family=Pinyon+Script&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/world.css">
 </head>
 <body>
-<div class="demo-strip">Demo 1 of 5: fixed price menu and cart. Name, prices and dates are placeholders. <a href="../">All demos</a></div>
-<header class="sign wrap">
-  <p class="name">Balloon Atelier</p>
-  <p class="tag">same day in LA</p>
-  <div class="pin"></div>
-</header>
-<main class="wrap split">
-  <section class="board" aria-labelledby="m">
-    <h2 id="m">The menu</h2>
-    <p class="muted small">Prices include setup. Delivery is priced by ZIP at checkout.</p>
-    <div id="menu"></div>
+<main class="wrap">
+  <section class="hero">
+    <div>
+      <h1>Personalized balloons, made by hand in Studio City</h1>
+      <p class="lead">Their name, their colors, their favorite things. Choose a set, add the lettering, and pick it up or have it delivered across Los Angeles.</p>
+      <p><a class="btn" href="#shop">Shop the sets</a></p>
+    </div>
+    <div class="art" id="heroArt"></div>
   </section>
-  <aside class="board sticky" aria-labelledby="c">
-    <h2 id="c">Your order</h2>
-    <p id="empty" class="muted">Tap Add on any line of the menu.</p>
-    <ul class="menu" id="cart"></ul>
-    <form id="checkout" class="hide" novalidate>
-      <div class="row">
-        <div class="field"><label for="zip">Delivery ZIP</label><input id="zip" inputmode="numeric" maxlength="5" autocomplete="postal-code" placeholder="90064" required><div class="readout" id="zipOut" aria-live="polite"></div></div>
-        <div class="field"><label for="date">Event date</label><input id="date" type="date" required><div class="readout" id="dateOut" aria-live="polite"></div></div>
+
+  <section class="section" id="shop" aria-labelledby="sh">
+    <h2 id="sh">The sets</h2>
+    <div class="tabs" role="tablist" id="tabs"></div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section class="section hide" id="pd" aria-labelledby="pdn">
+    <div class="split">
+      <div class="art sticky" id="pdArt"></div>
+      <div>
+        <h2 id="pdn"></h2>
+        <p class="muted" id="pdd"></p>
+        <p class="price" id="pdp" style="font:400 24px var(--serif)"></p>
+        <div class="field"><label for="l1">Name or main word</label><input id="l1" maxlength="18"></div>
+        <div class="field"><label for="l2">Second line (optional)</label><input id="l2" maxlength="22" placeholder="IS ONE, HAPPY BIRTHDAY"></div>
+        <div class="field"><span class="label" id="pl">Colors, pick up to 2</span><div class="swatches" role="group" aria-labelledby="pl" id="pal"></div><div class="readout muted" id="palOut"></div></div>
+        <button type="button" class="btn block" id="add">Add to bag</button>
       </div>
-      <div class="field"><label><input type="checkbox" id="pickup" style="width:auto;min-height:0"> I will pick up at the studio</label></div>
-      <div class="row">
-        <div class="field"><label for="name">Name</label><input id="name" autocomplete="name" required></div>
-        <div class="field"><label for="phone">Mobile</label><input id="phone" type="tel" autocomplete="tel" required></div>
-      </div>
-      <div class="total" id="total"></div>
-      <p class="readout bad" id="err" aria-live="assertive"></p>
-      <button class="btn" type="submit">Pay 30% deposit (demo)</button>
-    </form>
-  </aside>
-  <section class="board done" id="done" aria-live="polite"></section>
+    </div>
+  </section>
+
+  <section class="section hide" id="bagSec" aria-labelledby="bg">
+    <div class="split">
+      <div><h2 id="bg">Your bag</h2><ul class="list" id="bag"></ul></div>
+      <div class="panel" id="co"></div>
+    </div>
+  </section>
+  <section class="section done" id="done"></section>
 </main>
-<footer class="wrap">Concept demo. No order is sent and no card is charged.</footer>
 <script src="../assets/shop.js"></script>
 <script>
-var MENU = [
-  ["Bouquets", [["b5","Mini bouquet","5 latex balloons, ribbon, weight",95],["b9","Classic bouquet","9 balloons with one foil",145],["bn","Number bouquet","Foil number plus 7 balloons",180]]],
-  ["Garlands", [["g6","Garland 6 ft","Organic mix, 3 colors",260],["g10","Garland 10 ft","Organic mix, up to 4 colors",390],["g16","Garland 16 ft","Doorway or long table",560]]],
-  ["Installs", [["ar","Arch 8 ft","Freestanding frame, up to 4 colors",650],["co","Column pair","Two 6 ft columns for an entrance",320],["rf","Room fill","40 helium ceiling balloons",240]]]
-];
-var cart = {}, items = {}, z = null, ds = null;
-var menu = document.getElementById("menu");
-MENU.forEach(function (g) {
-  var h = document.createElement("h3"); h.textContent = g[0]; h.style.marginTop = "14px"; menu.appendChild(h);
-  var ul = document.createElement("ul"); ul.className = "menu";
-  g[1].forEach(function (it) {
-    items[it[0]] = it;
-    var li = document.createElement("li");
-    li.innerHTML = '<div class="what"><b>' + it[1] + "</b><span>" + it[2] + '</span></div><span class="price">' + Shop.money(it[3]) + '</span><button class="btn small" type="button" aria-label="Add ' + it[1] + '">Add</button>';
-    li.querySelector("button").onclick = function () { cart[it[0]] = (cart[it[0]] || 0) + 1; render(); };
-    ul.appendChild(li);
-  });
-  menu.appendChild(ul);
+Shop.chrome(1);
+var TABS = [["all", "All"], ["her", "For her"], ["him", "For him"], ["girls", "For girls"], ["boys", "For boys"], ["baby", "Baby and reveal"]];
+var bag = [], cur = null, sel = { l1: "", l2: "", pal: [] };
+document.getElementById("heroArt").innerHTML = Shop.art(Shop.byId("signature").art);
+var tabs = document.getElementById("tabs");
+TABS.forEach(function (t, i) {
+  var b = document.createElement("button"); b.type = "button"; b.role = "tab"; b.textContent = t[1]; b.setAttribute("aria-selected", i === 0);
+  b.onclick = function () { [].forEach.call(tabs.children, function (x) { x.setAttribute("aria-selected", x === b); }); grid(t[0]); };
+  tabs.appendChild(b);
 });
-function sub() { var s = 0; for (var k in cart) s += items[k][3] * cart[k]; return s; }
-function render() {
-  var ul = document.getElementById("cart"), keys = Object.keys(cart).filter(function (k) { return cart[k] > 0; });
-  ul.innerHTML = "";
-  keys.forEach(function (k) {
+function grid(f) {
+  var g = document.getElementById("grid"); g.innerHTML = "";
+  Shop.CATALOG.filter(function (p) { return f === "all" || p.for.indexOf(f) > -1; }).forEach(function (p) {
+    var b = document.createElement("button"); b.type = "button"; b.className = "product";
+    b.innerHTML = '<div class="art">' + Shop.art(p.art) + "</div><b>" + p.name + "</b><span>" + p.desc + '</span><span class="price">' + Shop.money(p.price) + "</span>";
+    b.onclick = function () { open(p); }; g.appendChild(b);
+  });
+}
+function open(p) {
+  cur = p; sel = { l1: p.art.line1 || "", l2: p.art.line2 || "", pal: (p.art.palette || []).slice(0, 2) };
+  document.getElementById("pdn").textContent = p.name; document.getElementById("pdd").textContent = p.desc; document.getElementById("pdp").textContent = Shop.money(p.price);
+  document.getElementById("l1").value = sel.l1; document.getElementById("l2").value = sel.l2;
+  var pal = document.getElementById("pal"); pal.innerHTML = "";
+  Object.keys(Shop.PALETTE).forEach(function (n) {
+    var s = document.createElement("button"); s.type = "button"; s.className = "sw"; s.style.background = Shop.PALETTE[n]; s.title = n; s.setAttribute("aria-label", n);
+    s.onclick = function () { var i = sel.pal.indexOf(n); if (i > -1) sel.pal.splice(i, 1); else { sel.pal.push(n); if (sel.pal.length > 2) sel.pal.shift(); } draw(); };
+    pal.appendChild(s);
+  });
+  var sec = document.getElementById("pd"); sec.classList.remove("hide"); draw(); sec.scrollIntoView({ behavior: "smooth" }); document.getElementById("pdn").setAttribute("tabindex", "-1"); document.getElementById("pdn").focus({ preventScroll: true });
+}
+function draw() {
+  sel.l1 = document.getElementById("l1").value; sel.l2 = document.getElementById("l2").value.toUpperCase();
+  var a = Object.assign({}, cur.art, { line1: sel.l1, line2: sel.l2, palette: sel.pal.length ? sel.pal : cur.art.palette });
+  document.getElementById("pdArt").innerHTML = Shop.art(a);
+  [].forEach.call(document.getElementById("pal").children, function (s) { s.setAttribute("aria-pressed", sel.pal.indexOf(s.title) > -1); });
+  document.getElementById("palOut").textContent = sel.pal.join(" and ") || "Studio picks the colors";
+}
+document.getElementById("l1").oninput = draw; document.getElementById("l2").oninput = draw;
+document.getElementById("add").onclick = function () {
+  bag.push({ name: cur.name, price: cur.price, note: [sel.l1, sel.l2].filter(Boolean).join(" / ") + (sel.pal.length ? ", " + sel.pal.join(" + ") : "") });
+  renderBag(); document.getElementById("bagSec").scrollIntoView({ behavior: "smooth" });
+};
+var co;
+function renderBag() {
+  var ul = document.getElementById("bag"); ul.innerHTML = "";
+  bag.forEach(function (it, i) {
     var li = document.createElement("li");
-    li.innerHTML = '<div class="what"><b>' + items[k][1] + "</b><span>" + cart[k] + " x " + Shop.money(items[k][3]) + '</span></div><span class="price">' + Shop.money(items[k][3] * cart[k]) + '</span><span><button class="btn small ghost" type="button" aria-label="Remove one">-</button></span>';
-    li.querySelector("button").onclick = function () { cart[k]--; render(); };
+    li.innerHTML = "<div><b style=\"font:400 18px var(--serif)\">" + Shop.esc(it.name) + '</b><br><span class="muted small">' + Shop.esc(it.note) + '</span></div><span class="price">' + Shop.money(it.price) + ' <button type="button" class="opt" style="min-height:36px;padding:6px 10px;margin-left:8px">Remove</button></span>';
+    li.querySelector("button").onclick = function () { bag.splice(i, 1); renderBag(); };
     ul.appendChild(li);
   });
-  document.getElementById("empty").classList.toggle("hide", keys.length > 0);
-  document.getElementById("checkout").classList.toggle("hide", !keys.length);
-  totals();
+  document.getElementById("bagSec").classList.toggle("hide", !bag.length);
+  if (bag.length && !co) co = Shop.checkout(document.getElementById("co"), { items: function () { return bag; }, doneEl: document.getElementById("done"), validate: function () { return bag.length ? "" : "Your bag is empty."; } });
+  if (co) co.refresh();
 }
-function totals() {
-  var pick = document.getElementById("pickup").checked, s = sub();
-  var fee = pick ? 0 : (z && z.fee) || 0, rush = ds && ds.rush || 0, t = s + fee + rush;
-  document.getElementById("total").innerHTML =
-    "<div><span>Items</span><span>" + Shop.money(s) + "</span></div>" +
-    "<div><span>Delivery</span><span>" + (pick ? "Pickup, free" : z ? (z.fee === null ? "Quoted by text" : Shop.money(fee)) : "Enter ZIP") + "</span></div>" +
-    (rush ? "<div><span>Rush</span><span>" + Shop.money(rush) + "</span></div>" : "") +
-    '<div class="sum"><span>Total</span><span>' + Shop.money(t) + "</span></div>" +
-    '<div class="muted small"><span>Deposit today (30%)</span><span>' + Shop.money(t * .3) + "</span></div>";
-}
-Shop.wireZip(document.getElementById("zip"), document.getElementById("zipOut"), function (v) { z = v; totals(); });
-Shop.wireDate(document.getElementById("date"), document.getElementById("dateOut"), function (v) { ds = v; totals(); });
-document.getElementById("pickup").onchange = totals;
-document.getElementById("checkout").onsubmit = function (e) {
-  e.preventDefault();
-  var f = this, err = document.getElementById("err"), pick = document.getElementById("pickup").checked;
-  if (!pick && !z) return err.textContent = "Add a delivery ZIP or choose pickup.";
-  if (!ds || ds.s === "bad") return err.textContent = "Pick an open date.";
-  if (!f.elements["name"].value.trim() || f.phone.value.replace(/\D/g, "").length < 10) return err.textContent = "Add your name and a 10-digit mobile number.";
-  err.textContent = "";
-  var lines = Object.keys(cart).filter(function (k) { return cart[k] > 0; }).map(function (k) { return cart[k] + " x " + items[k][1]; });
-  lines.push("Date: " + f.date.value, pick ? "Pickup at studio" : "Delivery to " + f.zip.value);
-  Shop.done(document.getElementById("done"), lines);
-};
+grid("all");
 </script>
 </body>
 </html>

@@ -4,118 +4,87 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Build Your Garland</title>
+<title>Personalize a Balloon</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&family=Bungee&family=Yellowtail&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500&family=Marcellus&family=Pinyon+Script&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/world.css">
 </head>
 <body>
-<div class="demo-strip">Demo 2 of 5: build it yourself, price updates live. Name, prices and dates are placeholders. <a href="../">All demos</a></div>
-<header class="sign wrap">
-  <p class="name">Balloon Atelier</p>
-  <p class="tag">build it your way</p>
-  <div class="pin"></div>
-</header>
-<main class="wrap split">
-  <section class="board sticky" aria-labelledby="pv">
-    <h2 id="pv">Your design</h2>
-    <div class="preview" id="art"></div>
-    <p class="muted small">Illustration only. Real balloons sit in an organic mix of sizes.</p>
-    <div class="total" id="total" aria-live="polite"></div>
+<main class="wrap">
+  <section class="hero" style="padding-bottom:8px">
+    <div>
+      <h1>Design the Signature Set</h1>
+      <p class="lead">Type the name and watch it appear on the balloon. Choose the lettering, the filling and two colors for the bouquet.</p>
+    </div>
   </section>
-  <form class="board" id="f" novalidate aria-labelledby="bt">
-    <h2 id="bt">Build it</h2>
-    <div class="field"><span id="tl" style="font-weight:700;font-size:14px">What are we making?</span>
-      <div class="chips" role="group" aria-labelledby="tl" id="types"></div></div>
-    <div class="field"><label for="size" id="sizeL">Length</label><input id="size" type="range" style="padding:0;border:0;background:none"><div class="readout" id="sizeOut"></div></div>
-    <div class="field"><span style="font-weight:700;font-size:14px" id="cl">Colors, up to 4</span>
-      <div class="swatches" role="group" aria-labelledby="cl" id="sw"></div>
-      <div class="readout muted small" id="swOut"></div></div>
-    <div class="field"><span style="font-weight:700;font-size:14px">Extras</span>
-      <ul class="menu" id="extras"></ul></div>
-    <h3>When and where</h3>
-    <div class="row">
-      <div class="field"><label for="zip">Delivery ZIP</label><input id="zip" inputmode="numeric" maxlength="5" autocomplete="postal-code" placeholder="90064"><div class="readout" id="zipOut" aria-live="polite"></div></div>
-      <div class="field"><label for="date">Event date</label><input id="date" type="date"><div class="readout" id="dateOut" aria-live="polite"></div></div>
+  <div class="split">
+    <div class="sticky">
+      <div class="art" id="art" style="aspect-ratio:1/1.05"></div>
+      <div class="sum" id="price" aria-live="polite"></div>
     </div>
-    <div class="row">
-      <div class="field"><label for="nm">Name</label><input id="nm" autocomplete="name"></div>
-      <div class="field"><label for="ph">Mobile</label><input id="ph" type="tel" autocomplete="tel"></div>
-    </div>
-    <p class="readout bad" id="err" aria-live="assertive"></p>
-    <button class="btn" type="submit">Book with 30% deposit (demo)</button>
-  </form>
-  <section class="board done" id="done"></section>
+    <form class="panel" id="f" novalidate>
+      <div class="row">
+        <div class="field"><label for="l1">Name</label><input id="l1" maxlength="16" value="Emma"></div>
+        <div class="field"><label for="l2">Second line</label><input id="l2" maxlength="20" value="is twenty"></div>
+      </div>
+      <div class="field"><span class="label" id="stl">Lettering</span><div class="opts" role="group" aria-labelledby="stl" id="style"></div></div>
+      <div class="field"><span class="label" id="inl">Lettering color</span><div class="opts" role="group" aria-labelledby="inl" id="ink"></div></div>
+      <div class="field"><span class="label" id="fil">Inside the balloon</span><div class="opts" role="group" aria-labelledby="fil" id="fill"></div></div>
+      <div class="field"><span class="label" id="bql">Bouquet</span><div class="opts" role="group" aria-labelledby="bql" id="bq"></div></div>
+      <div class="field"><span class="label" id="pl">Bouquet colors, up to 2</span><div class="swatches" role="group" aria-labelledby="pl" id="pal"></div><div class="readout muted" id="palOut"></div></div>
+      <h2 style="margin-top:24px">When and where</h2>
+      <div id="co"></div>
+    </form>
+  </div>
+  <section class="section done" id="done"></section>
 </main>
-<footer class="wrap">Concept demo. No order is sent and no card is charged.</footer>
 <script src="../assets/shop.js"></script>
 <script>
-var TYPES = {
-  garland: { label: "Garland", unit: "ft", min: 6, max: 30, def: 10, price: function (n) { return n * 38; } },
-  arch:    { label: "Arch", unit: "ft", min: 6, max: 14, def: 8, price: function (n) { return 650 + Math.max(0, n - 8) * 70; } },
-  columns: { label: "Columns", unit: "columns", min: 2, max: 4, def: 2, price: function (n) { return n * 160; } },
-  bouquet: { label: "Bouquet", unit: "balloons", min: 5, max: 15, def: 9, price: function (n) { return 25 + n * 14; } }
+Shop.chrome(2);
+var st = { style: "script", ink: "Gold", fill: "none", bq: "classic", pal: ["Deep Merlot", "Dusk Pink"] };
+var OPTS = {
+  style: [["script", "Script"], ["serif", "Classic"], ["sans", "Modern"]],
+  ink: [["Gold", "Gold"], ["Merlot", "Merlot"], ["Black", "Black"], ["White", "White"]],
+  fill: [["none", "Clear", 0], ["confetti", "Gold confetti", 10], ["pearls", "Pearls", 10], ["feathers", "Feathers", 15], ["flowers", "Dried flowers", 20]],
+  bq: [["none", "Jumbo only", -40, 0], ["classic", "Classic bouquet", 0, 4], ["full", "Fuller bouquet", 30, 6]]
 };
-var EXTRAS = [["num","Foil number or letter, each",25,true],["sign","Custom vinyl name sign",65],["fill","20 helium ceiling balloons",120],["chrome","Chrome finish on all balloons","+15%"]];
-var st = { type: "garland", size: 10, colors: ["Blush", "White", "Gold"], extras: {}, z: null, ds: null };
-var typesEl = document.getElementById("types"), size = document.getElementById("size");
-Object.keys(TYPES).forEach(function (k) {
-  var b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = TYPES[k].label; b.dataset.k = k;
-  b.onclick = function () { st.type = k; st.size = TYPES[k].def; sync(); }; typesEl.appendChild(b);
-});
-var sw = document.getElementById("sw");
-Shop.COLORS.forEach(function (c) {
-  var b = document.createElement("button"); b.type = "button"; b.className = "swatch"; b.innerHTML = '<i style="background:' + c[1] + '"></i>' + c[0]; b.dataset.c = c[0];
-  b.onclick = function () {
-    var i = st.colors.indexOf(c[0]);
-    if (i > -1) { if (st.colors.length > 1) st.colors.splice(i, 1); } else if (st.colors.length < 4) st.colors.push(c[0]);
-    else { document.getElementById("swOut").textContent = "Four colors max. Tap one to remove it first."; return; }
-    sync();
-  }; sw.appendChild(b);
-});
-var ex = document.getElementById("extras");
-EXTRAS.forEach(function (e) {
-  var li = document.createElement("li");
-  li.innerHTML = '<label class="what" style="font-weight:400;margin:0"><b>' + e[1] + '</b></label><span class="price">' + (typeof e[2] === "number" ? Shop.money(e[2]) : e[2]) + "</span>" +
-    (e[3] ? '<input type="number" min="0" max="9" value="0" style="width:72px" aria-label="How many: ' + e[1] + '">' : '<input type="checkbox" style="width:24px;min-height:24px" aria-label="' + e[1] + '">');
-  var inp = li.querySelector("input");
-  inp.oninput = inp.onchange = function () { st.extras[e[0]] = e[3] ? Math.max(0, Math.min(9, +inp.value || 0)) : inp.checked; sync(); };
-  ex.appendChild(li);
-});
-size.oninput = function () { st.size = +size.value; sync(); };
-function price() {
-  var t = TYPES[st.type], base = t.price(st.size);
-  if (st.extras.chrome) base *= 1.15;
-  base += (st.extras.num || 0) * 25 + (st.extras.sign ? 65 : 0) + (st.extras.fill ? 120 : 0);
-  return base;
+function opts(id, list) {
+  var g = document.getElementById(id);
+  list.forEach(function (o) {
+    var b = document.createElement("button"); b.type = "button"; b.className = "opt"; b.dataset.v = o[0];
+    b.innerHTML = o[1] + (o[2] ? "<small>" + (o[2] > 0 ? "+" : "-") + Shop.money(Math.abs(o[2])) + "</small>" : "");
+    b.onclick = function () { st[id] = o[0]; draw(); }; g.appendChild(b);
+  });
 }
-function sync() {
-  var t = TYPES[st.type];
-  [].forEach.call(typesEl.children, function (b) { b.setAttribute("aria-pressed", b.dataset.k === st.type); });
-  [].forEach.call(sw.children, function (b) { b.setAttribute("aria-pressed", st.colors.indexOf(b.dataset.c) > -1); });
-  document.getElementById("swOut").textContent = st.colors.join(", ");
-  size.min = t.min; size.max = t.max; size.value = st.size;
-  document.getElementById("sizeL").textContent = t.unit === "ft" ? "Length" : "How many";
-  document.getElementById("sizeOut").textContent = st.size + " " + t.unit;
-  document.getElementById("art").innerHTML = Shop.draw(st.type, st.colors, st.size);
-  var p = price(), fee = st.z && st.z.fee || 0, rush = st.ds && st.ds.rush || 0, tot = p + fee + rush;
-  document.getElementById("total").innerHTML =
-    "<div><span>" + t.label + ", " + st.size + " " + t.unit + "</span><span>" + Shop.money(p) + "</span></div>" +
-    "<div><span>Delivery</span><span>" + (st.z ? (st.z.fee === null ? "Quoted by text" : Shop.money(fee)) : "Enter ZIP") + "</span></div>" +
-    (rush ? "<div><span>Rush</span><span>" + Shop.money(rush) + "</span></div>" : "") +
-    '<div class="sum"><span>Total</span><span>' + Shop.money(tot) + '</span></div><div class="muted small"><span>Deposit today (30%)</span><span>' + Shop.money(tot * .3) + "</span></div>";
+Object.keys(OPTS).forEach(function (k) { opts(k, OPTS[k]); });
+var pal = document.getElementById("pal");
+Object.keys(Shop.PALETTE).forEach(function (n) {
+  var s = document.createElement("button"); s.type = "button"; s.className = "sw"; s.style.background = Shop.PALETTE[n]; s.title = n; s.setAttribute("aria-label", n);
+  s.onclick = function () { var i = st.pal.indexOf(n); if (i > -1) { if (st.pal.length > 1) st.pal.splice(i, 1); } else { st.pal.push(n); if (st.pal.length > 2) st.pal.shift(); } draw(); };
+  pal.appendChild(s);
+});
+function pick(list, v) { for (var i = 0; i < list.length; i++) if (list[i][0] === v) return list[i]; }
+function price() { return 125 + (pick(OPTS.fill, st.fill)[2] || 0) + (pick(OPTS.bq, st.bq)[2] || 0); }
+var co;
+function draw() {
+  ["style", "ink", "fill", "bq"].forEach(function (k) { [].forEach.call(document.getElementById(k).children, function (b) { b.setAttribute("aria-pressed", b.dataset.v === st[k]); }); });
+  [].forEach.call(pal.children, function (s) { s.setAttribute("aria-pressed", st.pal.indexOf(s.title) > -1); });
+  document.getElementById("palOut").textContent = st.pal.join(" and ");
+  var bq = pick(OPTS.bq, st.bq);
+  document.getElementById("art").innerHTML = Shop.art({ kind: bq[3] ? "bouquet" : "bubble", count: bq[3], palette: st.pal, line1: document.getElementById("l1").value, line2: document.getElementById("l2").value.toUpperCase(), style: st.style, ink: st.ink, fill: st.fill });
+  document.getElementById("price").innerHTML = "<div><span>Signature Set, 24-inch jumbo</span><span>$125</span></div>" +
+    (st.fill !== "none" ? "<div><span>" + pick(OPTS.fill, st.fill)[1] + "</span><span>+" + Shop.money(pick(OPTS.fill, st.fill)[2]) + "</span></div>" : "") +
+    (bq[2] ? "<div><span>" + bq[1] + "</span><span>" + (bq[2] > 0 ? "+" : "-") + Shop.money(Math.abs(bq[2])) + "</span></div>" : "") +
+    '<div class="t"><span>Before delivery</span><span>' + Shop.money(price()) + "</span></div>";
+  if (co) co.refresh();
 }
-Shop.wireZip(document.getElementById("zip"), document.getElementById("zipOut"), function (v) { st.z = v; sync(); });
-Shop.wireDate(document.getElementById("date"), document.getElementById("dateOut"), function (v) { st.ds = v; sync(); });
-document.getElementById("f").onsubmit = function (e) {
-  e.preventDefault(); var err = document.getElementById("err");
-  if (!st.z) return err.textContent = "Add a delivery ZIP.";
-  if (!st.ds || st.ds.s === "bad") return err.textContent = "Pick an open date.";
-  if (!document.getElementById("nm").value.trim() || document.getElementById("ph").value.replace(/\D/g, "").length < 10) return err.textContent = "Add your name and a 10-digit mobile number.";
-  err.textContent = "";
-  Shop.done(document.getElementById("done"), [TYPES[st.type].label + ", " + st.size + " " + TYPES[st.type].unit, "Colors: " + st.colors.join(", "), "Date: " + document.getElementById("date").value, "Total " + Shop.money(price() + (st.z.fee || 0) + (st.ds.rush || 0))]);
-};
-sync();
+document.getElementById("l1").oninput = draw; document.getElementById("l2").oninput = draw;
+co = Shop.checkout(document.getElementById("co"), {
+  items: function () { return [{ name: "Signature Set", price: price(), note: [document.getElementById("l1").value, document.getElementById("l2").value].filter(Boolean).join(" / ") + ", " + pick(OPTS.style, st.style)[1] + " in " + st.ink + ", " + pick(OPTS.fill, st.fill)[1] + ", " + pick(OPTS.bq, st.bq)[1] + " in " + st.pal.join(" + ") }]; },
+  validate: function () { return document.getElementById("l1").value.trim() ? "" : "Type the name for the balloon."; },
+  doneEl: document.getElementById("done")
+});
+draw();
 </script>
 </body>
 </html>

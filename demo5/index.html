@@ -4,83 +4,81 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Same Day Balloons</title>
+<title>Order by DM</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&family=Bungee&family=Yellowtail&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500&family=Marcellus&family=Pinyon+Script&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../assets/world.css">
 </head>
 <body>
-<div class="demo-strip">Demo 5 of 5: same-day delivery or order by text. Name, prices and times are placeholders. <a href="../">All demos</a></div>
-<header class="sign wrap">
-  <p class="name">Balloon Atelier</p>
-  <p class="tag">today, to your door</p>
-  <div class="pin"></div>
-</header>
-<main class="wrap" style="max-width:820px">
-  <section class="board" aria-labelledby="h">
-    <h2 id="h">Delivered today</h2>
-    <p id="clock" class="big-price" style="color:var(--ink)" aria-live="polite"></p>
-    <div class="field" style="max-width:260px"><label for="zip">Your ZIP</label><input id="zip" inputmode="numeric" maxlength="5" placeholder="90064" autocomplete="postal-code"><div class="readout" id="zo" aria-live="polite"></div></div>
-    <div id="win" class="hide"><span style="font-weight:700;font-size:14px" id="wl">Delivery window</span><div class="chips" role="group" aria-labelledby="wl" id="wins"></div></div>
-  </section>
-  <section class="board" aria-labelledby="r">
-    <h2 id="r">Ready to go</h2>
-    <p class="muted small">Made each morning. Pick one, we inflate it fresh.</p>
-    <ul class="menu" id="menu"></ul>
-    <div class="total" id="tt"></div>
-    <div class="row" style="margin-top:12px">
-      <div class="field"><label for="nm">Name</label><input id="nm" autocomplete="name"></div>
-      <div class="field"><label for="ph">Mobile</label><input id="ph" type="tel" autocomplete="tel"></div>
+<main class="wrap">
+  <section class="hero">
+    <div>
+      <h1>Order in one message</h1>
+      <p class="lead">Fill in the details once. We write the message for you, copy it, and open our Instagram chat. Paste and send.</p>
+      <p class="small muted">The studio gets every order in the same format, so there are no back-and-forth questions.</p>
     </div>
-    <div class="field"><label for="card">Card note (optional)</label><input id="card" maxlength="120" placeholder="Happy birthday, Mia!"></div>
-    <p class="readout bad" id="err" aria-live="assertive"></p>
-    <div class="row"><button class="btn" type="button" id="go">Pay and send today (demo)</button><a class="btn ghost" id="sms" href="#">Order by text instead</a></div>
-    <p class="small muted" style="margin-top:8px">Order by text opens your messages app with the order filled in. Nothing is sent until you press send.</p>
+    <div class="art" id="art"></div>
   </section>
-  <section class="board done" id="done"></section>
+  <div class="split section">
+    <form class="panel" id="f" novalidate>
+      <div class="field"><label for="set">Set</label><select id="set"></select></div>
+      <div class="row">
+        <div class="field"><label for="l1">Name on the balloon</label><input id="l1" maxlength="16"></div>
+        <div class="field"><label for="l2">Second line</label><input id="l2" maxlength="20"></div>
+      </div>
+      <div class="field"><label for="col">Colors or theme</label><input id="col" placeholder="Blush and cream, mermaid, trucks"></div>
+      <div class="row">
+        <div class="field"><label for="date">Date</label><input id="date" type="date"><div class="readout" id="dout" aria-live="polite"></div></div>
+        <div class="field"><label for="how">Pickup or delivery</label><select id="how"><option>Pickup in Studio City</option><option>Delivery</option></select></div>
+      </div>
+      <div class="field hide" id="zipf"><label for="zip">Delivery ZIP</label><input id="zip" inputmode="numeric" maxlength="5"><div class="readout" id="zout" aria-live="polite"></div></div>
+    </form>
+    <div class="sticky">
+      <div class="panel">
+        <span class="label">Your message</span>
+        <p id="msg" style="white-space:pre-line;font-size:16px;margin:0"></p>
+        <div class="sum" id="sum"></div>
+        <p class="readout bad" id="err" aria-live="assertive"></p>
+        <div class="row" style="gap:10px">
+          <button type="button" class="btn" id="copy">Copy and open Instagram</button>
+          <a class="btn line" id="sms" href="#">Send by text</a>
+        </div>
+        <p class="readout" id="cout" aria-live="polite"></p>
+      </div>
+    </div>
+  </div>
 </main>
-<footer class="wrap">Concept demo. No order is sent and no card is charged. The text number is a placeholder.</footer>
 <script src="../assets/shop.js"></script>
 <script>
-var ITEMS = [["Birthday bouquet", "9 balloons, foil star, curled ribbon", 135, "bouquet", 9, ["Coral", "Lemon", "Sky"]], ["Love bouquet", "7 balloons with a foil heart", 120, "bouquet", 7, ["Ruby", "Blush", "White"]], ["Baby hello", "7 balloons, pastel mix", 115, "bouquet", 7, ["Sage", "Sky", "White"]], ["Table garland", "5 ft garland, ready to hang", 210, "garland", 5, ["Gold", "White", "Black"]]];
-var pick = null, win = null, z = null, CUTOFF = 14; // 2 pm order cutoff (demo)
-var ul = document.getElementById("menu");
-ITEMS.forEach(function (x, i) {
-  var li = document.createElement("li"); li.style.gridTemplateColumns = "80px 1fr auto";
-  li.innerHTML = '<div aria-hidden="true">' + Shop.draw(x[3], x[5], x[4]) + '</div><div class="what"><b>' + x[0] + "</b><span>" + x[1] + '</span><br><button class="chip" type="button" aria-pressed="false" style="margin-top:6px">Pick this</button></div><span class="price">' + Shop.money(x[2]) + "</span>";
-  li.querySelector("button").onclick = function () { pick = x; [].forEach.call(ul.querySelectorAll("button"), function (b) { b.setAttribute("aria-pressed", b === this); }, this); tot(); };
-  ul.appendChild(li);
-});
-function tick() {
-  var now = new Date(), cut = new Date(); cut.setHours(CUTOFF, 0, 0, 0);
-  var m = Math.round((cut - now) / 6e4), el = document.getElementById("clock");
-  el.textContent = m > 0 ? "Order in " + Math.floor(m / 60) + "h " + (m % 60) + "m" : "Today is full. Order now for tomorrow.";
-  return m > 0;
+Shop.chrome(5);
+var sel = document.getElementById("set"), z = null, ds = null;
+Shop.CATALOG.forEach(function (p) { var o = document.createElement("option"); o.value = p.id; o.textContent = p.name + ", " + Shop.money(p.price); sel.appendChild(o); });
+var $ = function (id) { return document.getElementById(id); };
+$("date").min = Shop.todayISO(1);
+function text() {
+  var p = Shop.byId(sel.value), del = $("how").value === "Delivery";
+  return "Hi! I would like to order:\n" + p.name + " (" + Shop.money(p.price) + ")\nName: " + ($("l1").value || "-") + ($("l2").value ? " / " + $("l2").value : "") + "\nColors: " + ($("col").value || "your choice") + "\nDate: " + ($("date").value || "-") + "\n" + (del ? "Delivery to " + ($("zip").value || "-") : "Pickup in Studio City");
 }
-function windows() {
-  var w = document.getElementById("wins"); w.innerHTML = "";
-  var open = tick(), h = new Date().getHours(), list = open ? [] : ["Tomorrow 10 am to 12 pm", "Tomorrow 12 to 2 pm", "Tomorrow 2 to 4 pm"];
-  if (open) for (var s = Math.max(12, h + 2); s <= 18; s += 2) list.push("Today " + (s > 12 ? s - 12 : s) + " to " + (s + 2 - 12) + " pm");
-  list.forEach(function (t) { var b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = t; b.setAttribute("aria-pressed", "false"); b.onclick = function () { win = t; [].forEach.call(w.children, function (x) { x.setAttribute("aria-pressed", x === b); }); tot(); }; w.appendChild(b); });
+function draw() {
+  var p = Shop.byId(sel.value), del = $("how").value === "Delivery";
+  $("zipf").classList.toggle("hide", !del);
+  $("art").innerHTML = Shop.art(Object.assign({}, p.art, { line1: $("l1").value || p.art.line1, line2: ($("l2").value || p.art.line2 || "").toUpperCase() }));
+  $("msg").textContent = text();
+  var fee = del ? (z && z.fee) : 0;
+  $("sum").innerHTML = "<div><span>" + p.name + "</span><span>" + Shop.money(p.price) + "</span></div><div><span>" + (del ? "Delivery" : "Pickup") + "</span><span>" + (del ? (z ? (z.fee === null ? "Quoted in chat" : Shop.money(fee)) : "Enter ZIP") : "Free") + '</span></div><div class="t"><span>Estimated total</span><span>' + Shop.money(p.price + (fee || 0)) + "</span></div>";
+  $("sms").href = "sms:?&body=" + encodeURIComponent(text());
 }
-function tot() {
-  var f = z && z.fee || 0, p = pick ? pick[2] : 0;
-  document.getElementById("tt").innerHTML = "<div><span>" + (pick ? pick[0] : "Pick an item") + "</span><span>" + Shop.money(p) + "</span></div><div><span>Delivery " + (win ? "(" + win + ")" : "") + "</span><span>" + (z ? (z.fee === null ? "Not same day" : Shop.money(f)) : "Enter ZIP") + '</span></div><div class="sum"><span>Total</span><span>' + Shop.money(p + f) + "</span></div>";
-  var body = "Hi! Order: " + (pick ? pick[0] : "(item)") + ", ZIP " + (document.getElementById("zip").value || "(zip)") + ", " + (win || "(time)") + ". Card: " + (document.getElementById("card").value || "-");
-  document.getElementById("sms").href = "sms:+10000000000?&body=" + encodeURIComponent(body);
-}
-Shop.wireZip(document.getElementById("zip"), document.getElementById("zo"), function (v) { z = v; document.getElementById("win").classList.toggle("hide", !(v && v.fee !== null)); tot(); });
-document.getElementById("card").oninput = tot;
-windows(); tot(); setInterval(tick, 30000);
-document.getElementById("go").onclick = function () {
-  var err = document.getElementById("err");
-  if (!z || z.fee === null) return err.textContent = "Enter a ZIP we deliver to today.";
-  if (!win) return err.textContent = "Pick a delivery window.";
-  if (!pick) return err.textContent = "Pick an item.";
-  if (!document.getElementById("nm").value.trim() || document.getElementById("ph").value.replace(/\D/g, "").length < 10) return err.textContent = "Add your name and a 10-digit mobile number.";
-  err.textContent = "";
-  Shop.done(document.getElementById("done"), [pick[0] + ", " + Shop.money(pick[2] + z.fee) + " paid in full", win + " to " + document.getElementById("zip").value]);
+["set", "l1", "l2", "col", "how"].forEach(function (id) { $(id).oninput = $(id).onchange = draw; });
+$("zip").oninput = function () { z = Shop.zoneFor($("zip").value); $("zout").innerHTML = z ? '<span class="' + (z.fee === null ? "warn" : "ok") + '">' + z.name + (z.fee === null ? ", quoted in chat" : ": " + Shop.money(z.fee)) + "</span>" : ""; draw(); };
+$("date").oninput = $("date").onchange = function () { ds = Shop.dayStatus($("date").value); $("dout").innerHTML = ds ? '<span class="' + ds.s + '">' + ds.t + "</span>" : ""; draw(); };
+$("copy").onclick = function () {
+  var e = !$("l1").value.trim() ? "Add the name for the balloon." : !ds || ds.s === "bad" ? "Choose an available date." : $("how").value === "Delivery" && !z ? "Add the delivery ZIP." : "";
+  $("err").textContent = e; if (e) return;
+  var t = text();
+  (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { $("cout").innerHTML = '<span class="ok">Message copied. Paste it in the chat.</span>'; }, function () { $("cout").textContent = "Copy the message above, then paste it in the chat."; });
+  window.open("https://ig.me/m/balloonatelier.la", "_blank", "noopener");
 };
+draw();
 </script>
 </body>
 </html>
