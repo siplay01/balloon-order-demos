@@ -4,12 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
+<meta name="description" content="Balloon Atelier concept shop: personalized balloon sets by recipient, with pickup in Studio City or LA delivery.">
 <title>Balloon Atelier Shop</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500&family=Marcellus&family=Pinyon+Script&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/world.css?v=4">
+<link rel="stylesheet" href="../assets/world.css?v=5">
 </head>
 <body>
+<script src="../assets/shop.js?v=5"></script>
+<script>Shop.chrome(1);</script>
 <main class="wrap">
   <section class="hero">
     <div>
@@ -49,9 +52,7 @@
   </section>
   <section class="section done" id="done"></section>
 </main>
-<script src="../assets/shop.js?v=4"></script>
 <script>
-Shop.chrome(1);
 var TABS = [["all", "All"], ["her", "For her"], ["him", "For him"], ["girls", "For girls"], ["boys", "For boys"], ["baby", "Baby and reveal"]];
 var bag = [], cur = null, sel = { l1: "", l2: "", pal: [] };
 document.getElementById("heroArt").innerHTML = Shop.art(Shop.byId("signature").art);

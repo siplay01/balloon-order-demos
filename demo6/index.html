@@ -4,10 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
+<meta name="description" content="Build your own balloon set: pick each balloon and color and watch the bouquet come together.">
 <title>Build Your Set</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500&family=Marcellus&family=Pinyon+Script&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/world.css?v=4">
+<link rel="stylesheet" href="../assets/world.css?v=5">
 <style>
 .stage{background:var(--soft);border-radius:4px;aspect-ratio:400/520;overflow:hidden;position:relative}
 .stage svg{width:100%;height:100%;display:block}
@@ -31,6 +32,8 @@
 </style>
 </head>
 <body>
+<script src="../assets/shop.js?v=5"></script>
+<script>Shop.chrome(6);</script>
 <main class="wrap">
   <section class="hero" style="padding-bottom:12px">
     <div>
@@ -62,9 +65,7 @@
   </div>
   <section class="section done" id="done"></section>
 </main>
-<script src="../assets/shop.js?v=4"></script>
 <script>
-Shop.chrome(6);
 // Inch sizes drive both the drawing and the height meter. Prices are placeholders.
 var TYPES = {
   jumbo:  { name: "Jumbo bubble 24\"", short: "Personalized, clear", inch: 24, price: 45, max: 2 },

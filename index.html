@@ -8,7 +8,7 @@
 <meta name="description" content="Six concept demos of an online shop for Balloon Atelier, Studio City, Los Angeles.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500&family=Marcellus&family=Pinyon+Script&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/world.css?v=4">
+<link rel="stylesheet" href="assets/world.css?v=5">
 <style>
 .demos{list-style:none;margin:0;padding:0}
 .demos li{display:grid;grid-template-columns:150px 1fr auto;gap:20px;align-items:center;padding:18px 0;border-bottom:1px solid var(--line)}
@@ -19,6 +19,8 @@
 </style>
 </head>
 <body>
+<script src="assets/shop.js?v=5"></script>
+<script>Shop.chrome(0);</script>
 <main class="wrap">
   <section class="hero" style="grid-template-columns:1fr">
     <div>
@@ -44,9 +46,7 @@
     </div>
   </section>
 </main>
-<script src="assets/shop.js?v=4"></script>
 <script>
-Shop.chrome(0);
 document.querySelector(".logo").href = "./";
 [].forEach.call(document.querySelectorAll("[data-a]"), function (el) { el.innerHTML = Shop.art(Shop.byId(el.dataset.a).art); });
 </script>

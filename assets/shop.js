@@ -152,11 +152,13 @@ var Shop = (function () {
     var bar = document.createElement("nav"); bar.className = "demo-bar"; bar.setAttribute("aria-label", "Demos");
     bar.innerHTML = '<div class="wrap"><span>Concept demo</span>' + DEMOS.map(function (d, i) { return '<a href="' + ((n ? "../" : "") + d[0] || "./") + '"' + (i === n ? ' aria-current="page"' : "") + ">" + d[1] + "</a>"; }).join("") + "</div>";
     var top = document.createElement("header"); top.className = "top";
-    top.innerHTML = '<div class="wrap"><a class="logo" href="./" aria-label="Balloon Atelier"><b>BALLOON</b><i>Atelier</i></a><span class="meta">Studio City, Los Angeles &middot; pickup and local delivery</span></div>';
+    top.innerHTML = '<div class="wrap"><a class="logo" href="./"><b>BALLOON</b><i>Atelier</i></a><span class="meta">Studio City, Los Angeles &middot; pickup and local delivery</span></div>';
+    // Called right after <body> opens, so the header is in place before the content paints (no layout shift).
     document.body.insertBefore(top, document.body.firstChild); document.body.insertBefore(bar, top);
     var f = document.createElement("footer");
     f.innerHTML = '<div class="wrap">Concept demo for Balloon Atelier. The $125, $163 and $180 prices come from the studio\'s posts. Other prices, delivery fees and the calendar are placeholders. Nothing is sent or charged.</div>';
-    document.body.appendChild(f);
+    function foot() { document.body.appendChild(f); }
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", foot); else foot();
   }
 
   // ---------- checkout ----------
