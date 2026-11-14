@@ -46,14 +46,15 @@ var Shop = (function () {
   function hex(n) { return PALETTE[n] || n; }
   function shade(h, k) { var n = parseInt(h.slice(1), 16), r = n >> 16, g = n >> 8 & 255, b = n & 255; function f(c) { return Math.max(0, Math.min(255, Math.round(c * k))); } return "rgb(" + f(r) + "," + f(g) + "," + f(b) + ")"; }
   var uid = 0;
-  function latex(cx, cy, r, color, id) {
-    var c = hex(color);
+  // Every gradient gets its own page-unique id ("ba-" prefix), so drawings never clash with form field ids.
+  function latex(cx, cy, r, color) {
+    var c = hex(color), id = "ba-" + (++uid);
     return '<radialGradient id="' + id + '" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".35" stop-color="' + c + '"/><stop offset="1" stop-color="' + shade(c, .78) + '"/></radialGradient>' +
       '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + r + '" ry="' + (r * 1.08) + '" fill="url(#' + id + ')"/>' +
       '<path d="M' + (cx - 4) + " " + (cy + r * 1.08) + " l4 7 l4 -7z" + '" fill="' + shade(c, .7) + '"/>';
   }
   function bubble(cx, cy, r, o) {
-    var id = "g" + (++uid), s = "", i, rnd = seeded(5);
+    var id = "ba-" + (++uid), s = "", i, rnd = seeded(5);
     s += '<radialGradient id="' + id + '" cx="38%" cy="32%" r="70%"><stop offset="0" stop-color="#fff" stop-opacity=".75"/><stop offset=".6" stop-color="#fff" stop-opacity=".5"/><stop offset="1" stop-color="#fff" stop-opacity=".6"/></radialGradient>';
     s += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="url(#' + id + ')" stroke="rgba(70,50,45,.22)" stroke-width="1.2"/>';
     var fill = o.fill || "none";
@@ -65,14 +66,52 @@ var Shop = (function () {
         : '<g fill="#fff" stroke="rgba(120,100,90,.3)" stroke-width=".5">' + [0, 1, 2, 3, 4].map(function (k) { return '<circle cx="' + (fx + Math.cos(k * 1.26) * 5) + '" cy="' + (fy + Math.sin(k * 1.26) * 5) + '" r="4"/>'; }).join("") + '</g><circle cx="' + fx + '" cy="' + fy + '" r="2.4" fill="#e7d9a8"/>';
     }
     // lettering
-    var ink = INK[o.ink || "Gold"] || hex(o.ink), l1 = esc(o.line1 || ""), l2 = esc(o.line2 || ""), style = o.style || "script";
+    var ink = INK[o.ink || "Gold"] || hex(o.ink), l1 = o.line1 || "", l2 = o.line2 || "", style = o.style || "script";
     var fam = style === "script" ? "Pinyon Script" : style === "serif" ? "Marcellus" : "Jost";
-    var fs = Math.min(r * .5, r * 2.6 / Math.max(3, l1.length * (style === "script" ? .55 : .62)));
-    if (l1) s += '<text x="' + cx + '" y="' + (cy - (l2 ? r * .02 : -r * .08)) + '" text-anchor="middle" font-family="' + fam + '" font-size="' + fs.toFixed(1) + '" fill="' + ink + '">' + l1 + "</text>";
-    if (l2) s += '<text x="' + cx + '" y="' + (cy + r * .26) + '" text-anchor="middle" font-family="Marcellus" font-size="' + Math.min(r * .15, r * 1.3 / Math.max(4, l2.length * .82)).toFixed(1) + '" letter-spacing="' + (r * .02).toFixed(1) + '" fill="' + ink + '">' + l2 + "</text>";
+    var fs = r * (style === "script" ? .46 : .3); // ideal size; fitText() shrinks or wraps long names
+    if (l1) s += label(cx, cy - (l2 ? r * .02 : -r * .08), o.line1, fs, r * 1.5, 'font-family="' + fam + '" fill="' + ink + '"', true);
+    if (l2) s += label(cx, cy + r * .26, o.line2, r * .15, r * 1.4, 'font-family="Marcellus" letter-spacing="' + (r * .02).toFixed(1) + '" fill="' + ink + '"');
     s += '<path d="M' + (cx - r * .5) + " " + (cy - r * .62) + " A" + r * .8 + " " + r * .8 + " 0 0 1 " + (cx + r * .05) + " " + (cy - r * .82) + '" stroke="#fff" stroke-width="' + (r * .05) + '" stroke-linecap="round" fill="none" opacity=".8"/>';
     return s;
   }
+  // Lettering is drawn at its ideal size, then fitText() measures it in the browser and shrinks it
+  // (or splits a two-word name onto two lines) so it always stays inside the balloon or box.
+  function label(x, y, txt, fs, maxw, attrs, wrap) {
+    if (!txt) return "";
+    return '<text x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" text-anchor="middle" font-size="' + fs.toFixed(1) + '" data-fs="' + fs.toFixed(1) + '" data-maxw="' + maxw.toFixed(1) + '"' + (wrap ? ' data-wrap="1"' : "") + ' data-txt="' + esc(txt) + '" ' + attrs + ">" + esc(txt) + "</text>";
+  }
+  var fontsKey = 0;
+  function fit1(t) {
+    var txt = t.getAttribute("data-txt"), key = txt + "|" + fontsKey;
+    if (t.__k === key) return;
+    var fs = +t.getAttribute("data-fs"), max = +t.getAttribute("data-maxw"), x = t.getAttribute("x");
+    t.textContent = txt; t.setAttribute("font-size", fs);
+    var w = t.getBBox().width; // rendered width, includes letter-spacing
+    if (!w) return; // not rendered yet (hidden); try again on the next change
+    t.__k = key;
+    if (w <= max) return;
+    var sc = max / w, sp = txt.split(" ");
+    if (t.hasAttribute("data-wrap") && sc < .72 && sp.length > 1) {
+      var best = 1, bd = 1e9, i;
+      for (i = 1; i < sp.length; i++) { var d = Math.abs(sp.slice(0, i).join(" ").length - sp.slice(i).join(" ").length); if (d < bd) { bd = d; best = i; } }
+      var NS = "http://www.w3.org/2000/svg", a = document.createElementNS(NS, "tspan"), b = document.createElementNS(NS, "tspan");
+      a.setAttribute("x", x); a.setAttribute("dy", "-0.55em"); a.textContent = sp.slice(0, best).join(" ");
+      b.setAttribute("x", x); b.setAttribute("dy", "1em"); b.textContent = sp.slice(best).join(" ");
+      t.textContent = ""; t.appendChild(a); t.appendChild(b);
+      var lw = t.getBBox().width;
+      for (var m = 0, c2 = fs; m < 5 && lw > max; m++) { c2 = c2 * max / lw * .97; t.setAttribute("font-size", c2.toFixed(1)); lw = t.getBBox().width; }
+    } else {
+      // Re-measure: fixed letter-spacing does not shrink with the font, so one pass can fall short.
+      for (var n = 0, cur = fs; n < 5 && w > max; n++) { cur = cur * max / w * .97; t.setAttribute("font-size", cur.toFixed(1)); w = t.getBBox().width; }
+    }
+  }
+  function fitText() { [].forEach.call(document.querySelectorAll("svg text[data-maxw]"), fit1); }
+  if (typeof MutationObserver !== "undefined") {
+    var queued = 0;
+    new MutationObserver(function () { if (!queued) queued = requestAnimationFrame(function () { queued = 0; fitText(); }); }).observe(document.documentElement, { childList: true, subtree: true });
+  }
+  if (document.fonts) { document.fonts.ready.then(function () { fontsKey++; fitText(); }); document.fonts.addEventListener && document.fonts.addEventListener("loadingdone", function () { fontsKey++; fitText(); }); }
+
   function seeded(seed) { return function () { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }; }
   function ribbons(x, y, n, color, len) {
     var s = "", i;
@@ -92,13 +131,13 @@ var Shop = (function () {
       var r2 = seeded(3);
       for (i = 0; i < 22; i++) { var bx = 110 + r2() * 180, by = 60 + r2() * 150; s += '<path d="M' + bx + " " + (by + 30) + " Q" + (bx + 10) + " " + (by + 120) + " 200 290" + '" stroke="#c9a45c" stroke-width=".9" fill="none" opacity=".7"/>'; s += latex(bx, by, 20 + r2() * 8, p[i % p.length], base + i); }
       s += '<rect x="96" y="262" width="208" height="150" fill="#fbf8f4" stroke="rgba(70,50,45,.18)"/><path d="M86 262h228l-12-26H98z" fill="#fff" stroke="rgba(70,50,45,.15)"/>';
-      s += '<text x="200" y="316" text-anchor="middle" font-family="Marcellus" font-size="' + Math.min(20, 300 / Math.max(6, (a.line1 || "").length * .9)).toFixed(1) + '" letter-spacing="2" fill="#3a2c28">' + esc((a.line1 || "").toUpperCase()) + '</text><text x="200" y="358" text-anchor="middle" font-family="Pinyon Script" font-size="30" fill="' + INK.Gold + '">' + esc(a.line2 ? a.line2.charAt(0) + a.line2.slice(1).toLowerCase() : "") + "</text>";
+      s += label(200, 316, (a.line1 || "").toUpperCase(), 20, 184, 'font-family="Marcellus" letter-spacing="2" fill="#3a2c28"') + label(200, 362, a.line2 ? a.line2.charAt(0) + a.line2.slice(1).toLowerCase() : "", 30, 184, 'font-family="Pinyon Script" fill="' + INK.Gold + '"');
       var bw = hex(a.bow || "Chrome Gold"); s += '<g fill="none" stroke="' + bw + '" stroke-width="6" stroke-linejoin="round"><path d="M200 250 C170 222 146 238 160 254 C170 266 190 258 200 250Z"/><path d="M200 250 C230 222 254 238 240 254 C230 266 210 258 200 250Z"/><path d="M196 252 l-14 34 M204 252 l14 34"/></g><circle cx="200" cy="250" r="6" fill="' + bw + '"/>';
     } else if (k === "glass") {
       var g = [[120, 150, 78], [282, 140, 78], [150, 290, 70], [262, 288, 70]];
       s += ribbons(200, 380, 4, null, 50);
       for (i = 0; i < 4; i++) s += latex(g[i][0], g[i][1], g[i][2], p[i % p.length], base + i);
-      s += '<text x="120" y="160" text-anchor="middle" font-family="Pinyon Script" font-size="' + Math.min(34, 260 / Math.max(5, (a.line1 || "").length)).toFixed(1) + '" fill="' + (INK[a.ink] || INK.Gold) + '">' + esc(a.line1 || "") + "</text>";
+      s += label(120, 160, a.line1, 34, 118, 'font-family="Pinyon Script" fill="' + (INK[a.ink] || INK.Gold) + '"', true);
     } else {
       var r3 = seeded(9);
       for (i = 0; i < 16; i++) s += latex(40 + r3() * 320, 50 + r3() * 280, 34 + r3() * 18, p[i % p.length], base + i);
@@ -127,7 +166,7 @@ var Shop = (function () {
       '<button type="button" class="opt" data-m="pickup" aria-pressed="true">Pickup<small>Studio City, free</small></button>' +
       '<button type="button" class="opt" data-m="delivery" aria-pressed="false">Delivery<small>Fee by ZIP</small></button></div></div>' +
       '<div class="field hide" data-z><label for="co-zip">Delivery ZIP</label><input id="co-zip" inputmode="numeric" maxlength="5" autocomplete="postal-code"><div class="readout" aria-live="polite" data-zo></div></div>' +
-      '<div class="row"><div class="field"><label for="co-date">Date</label><input id="co-date" type="date"><div class="readout" aria-live="polite" data-do></div></div>' +
+      '<div class="row"><div class="field"><label for="co-date">Date</label><input id="co-date" type="date" required><div class="readout" aria-live="polite" data-do></div></div>' +
       '<div class="field"><label for="co-time">Time</label><select id="co-time"><option>10 am to 12 pm</option><option>12 to 2 pm</option><option>2 to 4 pm</option><option>4 to 6 pm</option></select></div></div>' +
       '<div class="row"><div class="field"><label for="co-name">Name</label><input id="co-name" autocomplete="name"></div><div class="field"><label for="co-phone">Mobile</label><input id="co-phone" type="tel" autocomplete="tel"></div></div>' +
       '<div class="sum" data-sum aria-live="polite"></div><p class="readout bad" data-err aria-live="assertive"></p>' +
@@ -169,5 +208,5 @@ var Shop = (function () {
       lines.map(function (l) { return "<li>" + esc(l) + "</li>"; }).join("") + '</ul><p style="margin-top:16px"><a class="btn line" href="./">Start again</a></p></div>';
     el.classList.add("show", "fade"); el.setAttribute("tabindex", "-1"); el.scrollIntoView({ behavior: "smooth", block: "start" }); el.focus({ preventScroll: true });
   }
-  return { latex: latex, bubble: bubble, ribbons: ribbons, shade: shade, hex: hex, PALETTE: PALETTE, CATALOG: CATALOG, byId: byId, money: money, esc: esc, zoneFor: zoneFor, dayStatus: dayStatus, todayISO: todayISO, art: art, chrome: chrome, checkout: checkout, done: done };
+  return { label: label, fitText: fitText, latex: latex, bubble: bubble, ribbons: ribbons, shade: shade, hex: hex, PALETTE: PALETTE, CATALOG: CATALOG, byId: byId, money: money, esc: esc, zoneFor: zoneFor, dayStatus: dayStatus, todayISO: todayISO, art: art, chrome: chrome, checkout: checkout, done: done };
 })();

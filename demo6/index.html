@@ -23,7 +23,7 @@
 .piece small{display:block;color:var(--mute);font-size:13px}
 .lines li{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center}
 .lines .dot{width:28px;height:28px;border-radius:50%;border:1px solid rgba(0,0,0,.15)}
-.lines select{min-height:40px;padding:6px 8px;font-size:15px}
+.lines select{min-height:44px;padding:8px 36px 8px 10px;font-size:15px}
 .step{display:flex;align-items:center;gap:4px}
 .step button{width:36px;height:36px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:2px;font:400 18px var(--sans);cursor:pointer}
 .step output{min-width:24px;text-align:center;font-variant-numeric:tabular-nums}
@@ -53,7 +53,7 @@
       <div class="field"><span class="label">Add a balloon</span><div class="pieces" id="pieces"></div></div>
       <div class="field"><span class="label">In your set</span><ul class="list lines" id="lines"></ul><p class="muted small hide" id="empty">Nothing yet. Tap a balloon above or start from a ready set.</p></div>
       <div class="row" id="letterRow">
-        <div class="field"><label for="l1">Name on the jumbo</label><input id="l1" maxlength="16" value="Emma"></div>
+        <div class="field"><label for="l1">Name on the jumbo</label><input id="l1" maxlength="24" value="Emma"></div>
         <div class="field"><label for="num">Foil number</label><input id="num" maxlength="2" inputmode="numeric" value="30"></div>
       </div>
       <div class="field"><span class="label" id="fl">Finish</span><div class="opts" role="group" aria-labelledby="fl" id="finish"></div></div>
@@ -156,7 +156,7 @@ function layout() {
 function order(t) { return { number: 9, jumbo: 0, over: 1, star: 3, chrome: 2, classic: 2 }[t]; }
 var PX = 3.3;
 function draw() {
-  var P = layout(), s = "", knot = { x: 200, y: 470 }, l1 = Shop.esc($("l1").value), num = Shop.esc($("num").value.replace(/\D/g, "") || "0");
+  var P = layout(), s = "", knot = { x: 200, y: 470 }, l1 = $("l1").value, num = $("num").value.replace(/\D/g, "") || "0";
   if (!P.length) { $("stage").innerHTML = '<svg viewBox="0 0 400 520" aria-hidden="true"><text x="200" y="250" text-anchor="middle" font-family="Marcellus" font-size="20" fill="#9a8c84">Your set appears here</text></svg>'; return P; }
   P.forEach(function (p) { s += '<path d="M' + p.x.toFixed(1) + " " + (p.y + p.r).toFixed(1) + " Q" + ((p.x + knot.x) / 2 + (p.x < 200 ? -8 : 8)).toFixed(1) + " " + ((p.y + knot.y) / 2).toFixed(1) + " " + knot.x + " " + knot.y + '" stroke="#bfa36a" stroke-width=".8" fill="none" opacity=".6"/>'; });
   var draws = P.slice().sort(function (a, b) { return (a.it.t === "jumbo") - (b.it.t === "jumbo") || (a.it.t === "number") - (b.it.t === "number") || a.y - b.y; });
@@ -164,8 +164,8 @@ function draw() {
     var t = p.it.t, g = '<g class="pc">';
     if (t === "jumbo") g += '<circle cx="' + p.x + '" cy="' + p.y + '" r="' + p.r + '" fill="#fbf7f2" opacity=".72"/>' + Shop.bubble(p.x, p.y, p.r, { line1: l1, style: "script", ink: "Gold", fill: "feathers" });
     else if (t === "star") g += '<path d="' + star(p.x, p.y, p.r) + '" fill="' + Shop.hex(p.it.c) + '" stroke="' + Shop.shade(Shop.hex(p.it.c), .8) + '"/><path d="' + star(p.x - p.r * .1, p.y - p.r * .1, p.r * .4) + '" fill="#fff" opacity=".35"/>';
-    else if (t === "number") g += '<text x="' + p.x + '" y="' + (p.y + p.r * .55) + '" text-anchor="middle" font-family="Marcellus" font-size="' + (p.r * (num.length > 1 ? 1.5 : 1.9)).toFixed(0) + '" fill="' + Shop.hex(p.it.c) + '" stroke="' + Shop.shade(Shop.hex(p.it.c), .75) + '" stroke-width="1.5">' + num + "</text>";
-    else { g += Shop.latex(p.x, p.y, p.r, p.it.c, "l" + i); if (TYPES[t].shine) g += '<ellipse cx="' + (p.x + p.r * .3) + '" cy="' + (p.y + p.r * .35) + '" rx="' + p.r * .2 + '" ry="' + p.r * .12 + '" fill="#fff" opacity=".5"/>'; }
+    else if (t === "number") g += Shop.label(p.x, p.y + p.r * .55, num, p.r * 1.9, p.r * 2.3, 'font-family="Marcellus" fill="' + Shop.hex(p.it.c) + '" stroke="' + Shop.shade(Shop.hex(p.it.c), .75) + '" stroke-width="1.5"');
+    else { g += Shop.latex(p.x, p.y, p.r, p.it.c); if (TYPES[t].shine) g += '<ellipse cx="' + (p.x + p.r * .3) + '" cy="' + (p.y + p.r * .35) + '" rx="' + p.r * .2 + '" ry="' + p.r * .12 + '" fill="#fff" opacity=".5"/>'; }
     s += g + "</g>";
   });
   if (finish === "tassel") s += Shop.ribbons(200, 470, 9, "#c9a45c", 46);

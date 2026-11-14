@@ -23,12 +23,12 @@
     <form class="panel" id="f" novalidate>
       <div class="field"><label for="set">Set</label><select id="set"></select></div>
       <div class="row">
-        <div class="field"><label for="l1">Name on the balloon</label><input id="l1" maxlength="16"></div>
-        <div class="field"><label for="l2">Second line</label><input id="l2" maxlength="20"></div>
+        <div class="field"><label for="l1">Name on the balloon</label><input id="l1" maxlength="24"></div>
+        <div class="field"><label for="l2">Second line</label><input id="l2" maxlength="24"></div>
       </div>
       <div class="field"><label for="col">Colors or theme</label><input id="col" placeholder="Blush and cream, mermaid, trucks"></div>
       <div class="row">
-        <div class="field"><label for="date">Date</label><input id="date" type="date"><div class="readout" id="dout" aria-live="polite"></div></div>
+        <div class="field"><label for="date">Date</label><input id="date" type="date" required><div class="readout" id="dout" aria-live="polite"></div></div>
         <div class="field"><label for="how">Pickup or delivery</label><select id="how"><option>Pickup in Studio City</option><option>Delivery</option></select></div>
       </div>
       <div class="field hide" id="zipf"><label for="zip">Delivery ZIP</label><input id="zip" inputmode="numeric" maxlength="5"><div class="readout" id="zout" aria-live="polite"></div></div>
