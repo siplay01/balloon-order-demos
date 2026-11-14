@@ -18,7 +18,9 @@ a{color:inherit;text-underline-offset:4px;text-decoration-thickness:1px}
 
 /* demo switcher */
 .demo-bar{border-bottom:1px solid var(--line);font-size:13px;color:var(--mute)}
-.demo-bar .wrap{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;padding-top:8px;padding-bottom:8px}
+/* One scrollable row: its height never depends on which font has loaded (prevents layout shift). */
+.demo-bar .wrap{display:flex;flex-wrap:nowrap;gap:14px;align-items:center;padding-top:8px;padding-bottom:8px;overflow-x:auto;white-space:nowrap;scrollbar-width:none}
+.demo-bar .wrap::-webkit-scrollbar{display:none}
 .demo-bar a{text-decoration:none;padding:2px 0}
 .demo-bar a[aria-current]{color:var(--ink);border-bottom:1px solid var(--ink)}
 
