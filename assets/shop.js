@@ -159,6 +159,8 @@ var Shop = (function () {
     f.innerHTML = '<div class="wrap">Concept demo for Balloon Atelier. The $125, $163 and $180 prices come from the studio\'s posts. Other prices, delivery fees and the calendar are placeholders. Nothing is sent or charged.</div>';
     function foot() { document.body.appendChild(f); }
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", foot); else foot();
+    var curLink = bar.querySelector("[aria-current]"), row = bar.firstChild;
+    if (curLink && curLink.offsetLeft + curLink.offsetWidth > row.clientWidth) row.scrollLeft = curLink.offsetLeft - 16;
   }
 
   // ---------- checkout ----------
